@@ -1,57 +1,57 @@
-# 抖音下载器使用说明
+# Hướng dẫn sử dụng trình tải Douyin
 
-## 🚀 快速开始
+## 🚀 Bắt đầu nhanh
 
-### 1. 安装依赖
+### 1. Cài đặt phụ thuộc
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. 配置 Cookie（首次使用需要）
+### 2. Cấu hình Cookie (cần cho lần đầu)
 ```bash
-# 自动获取（推荐）
+# Tự động lấy (khuyến nghị)
 python cookie_extractor.py
 
-# 或手动获取
+# Hoặc lấy thủ công
 python get_cookies_manual.py
 ```
 
-### 3. 开始下载
+### 3. Bắt đầu tải
 
-#### V1.0 稳定版（推荐用于单个视频）
+#### V1.0 ổn định (gợi ý cho video đơn)
 ```bash
-# 编辑 config.yml 配置文件
-# 然后运行
+# Chỉnh file cấu hình config.yml
+# Sau đó chạy
 python DouYinCommand.py
 ```
 
-#### V2.0 增强版（推荐用于用户主页）
+#### V2.0 tăng cường (gợi ý cho trang cá nhân)
 ```bash
-# 下载用户主页
+# Tải trang cá nhân
 python downloader.py -u "https://www.douyin.com/user/xxxxx"
 
-# 自动获取 Cookie 并下载
+# Tự lấy Cookie rồi tải
 python downloader.py --auto-cookie -u "https://www.douyin.com/user/xxxxx"
 ```
 
-## 📋 版本对比
+## 📋 So sánh phiên bản
 
-| 功能 | V1.0 (DouYinCommand.py) | V2.0 (downloader.py) |
+| Tính năng | V1.0 (DouYinCommand.py) | V2.0 (downloader.py) |
 |------|------------------------|---------------------|
-| 单个视频下载 | ✅ 完全正常 | ⚠️ API 问题 |
-| 用户主页下载 | ✅ 正常 | ✅ 完全正常 |
-| Cookie 管理 | 手动配置 | 自动获取 |
-| 使用复杂度 | 简单 | 中等 |
-| 稳定性 | 高 | 中等 |
+| Tải video đơn | ✅ Hoàn toàn ổn định | ⚠️ Lỗi API |
+| Tải trang cá nhân | ✅ Bình thường | ✅ Hoàn toàn ổn định |
+| Quản lý Cookie | Cấu hình thủ công | Tự động lấy |
+| Độ phức tạp sử dụng | Đơn giản | Trung bình |
+| Độ ổn định | Cao | Trung bình |
 
-## 🎯 推荐使用场景
+## 🎯 Kịch bản khuyến nghị
 
-- **下载单个视频**：使用 V1.0
-- **下载用户主页**：使用 V2.0
-- **批量下载**：使用 V2.0
-- **学习研究**：两个版本都可以
+- **Tải video đơn**: dùng V1.0
+- **Tải trang cá nhân**: dùng V2.0
+- **Tải hàng loạt**: dùng V2.0
+- **Học tập nghiên cứu**: cả hai phiên bản đều được
 
-## 📞 获取帮助
+## 📞 Nhận hỗ trợ
 
-- 查看详细文档：`README.md`
-- 报告问题：[GitHub Issues](https://github.com/jiji262/douyin-downloader/issues) 
+- Xem tài liệu chi tiết: `README.md`
+- Báo lỗi: [GitHub Issues](https://github.com/jiji262/douyin-downloader/issues)

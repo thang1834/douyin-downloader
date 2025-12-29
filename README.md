@@ -1,91 +1,91 @@
-# 抖音下载器 - 无水印批量下载工具
+# Trình tải Douyin - Công cụ tải hàng loạt không logo
 
 ![douyin-downloader](https://socialify.git.ci/jiji262/douyin-downloader/image?custom_description=%E6%8A%96%E9%9F%B3%E6%89%B9%E9%87%8F%E4%B8%8B%E8%BD%BD%E5%B7%A5%E5%85%B7%EF%BC%8C%E5%8E%BB%E6%B0%B4%E5%8D%B0%EF%BC%8C%E6%94%AF%E6%8C%81%E8%A7%86%E9%A2%91%E3%80%81%E5%9B%BE%E9%9B%86%E3%80%81%E5%90%88%E9%9B%86%E3%80%81%E9%9F%B3%E4%B9%90%28%E5%8E%9F%E5%A3%B0%29%E3%80%82%0A%E5%85%8D%E8%B4%B9%EF%BC%81%E5%85%8D%E8%B4%B9%EF%BC%81%E5%85%8D%E8%B4%B9%EF%BC%81&description=1&font=Jost&forks=1&logo=https%3A%2F%2Fraw.githubusercontent.com%2Fjiji262%2Fdouyin-downloader%2Frefs%2Fheads%2Fmain%2Fimg%2Flogo.png&name=1&owner=1&pattern=Circuit+Board&pulls=1&stargazers=1&theme=Light)
 
-一个功能强大的抖音内容批量下载工具，支持视频、图集、音乐、直播等多种内容类型的下载。提供两个版本：V1.0（稳定版）和 V2.0（增强版）。
+Một công cụ mạnh mẽ để tải hàng loạt nội dung Douyin, hỗ trợ video, bộ ảnh, nhạc, livestream và nhiều loại nội dung khác. Có hai phiên bản: V1.0 (ổn định) và V2.0 (tăng cường).
 
-## 📋 目录
+## 📋 Mục lục
 
-- [快速开始](#-快速开始)
-- [版本说明](#-版本说明)
-- [V1.0 使用指南](#-v10-使用指南)
-- [V2.0 使用指南](#-v20-使用指南)
-- [Cookie 配置工具](#-cookie-配置工具)
-- [支持的链接类型](#-支持的链接类型)
-- [常见问题](#-常见问题)
-- [更新日志](#-更新日志)
+- [Bắt đầu nhanh](#-bắt-đầu-nhanh)
+- [Giới thiệu phiên bản](#-giới-thiệu-phiên-bản)
+- [Hướng dẫn V1.0](#-v10-hướng-dẫn)
+- [Hướng dẫn V2.0](#-v20-hướng-dẫn)
+- [Công cụ cấu hình Cookie](#-công-cụ-cấu-hình-cookie)
+- [Các loại liên kết hỗ trợ](#-các-loại-liên-kết-hỗ-trợ)
+- [Câu hỏi thường gặp](#-câu-hỏi-thường-gặp)
+- [Nhật ký cập nhật](#-nhật-ký-cập-nhật)
 
-## ⚡ 快速开始
+## ⚡ Bắt đầu nhanh
 
 ![qun](./img/fuye.jpg)
 
-### 环境要求
+### Yêu cầu môi trường
 
 - **Python 3.9+**
-- **操作系统**：Windows、macOS、Linux
+- **Hệ điều hành**: Windows, macOS, Linux
 
-### 安装步骤
+### Các bước cài đặt
 
-1. **克隆项目**
+1. **Clone dự án**
 ```bash
 git clone https://github.com/jiji262/douyin-downloader.git
 cd douyin-downloader
 ```
 
-2. **安装依赖**
+2. **Cài đặt phụ thuộc**
 ```bash
 pip install -r requirements.txt
 ```
 
-3. **配置 Cookie**（首次使用需要）
+3. **Cấu hình Cookie** (cần cho lần đầu)
 ```bash
-# 方式1：自动获取（推荐）
+# Cách 1: Lấy tự động (khuyến nghị)
 python cookie_extractor.py
 
-# 方式2：手动获取
+# Cách 2: Lấy thủ công
 python get_cookies_manual.py
 ```
 
-## 📦 版本说明
+## 📦 Giới thiệu phiên bản
 
-### V1.0 (DouYinCommand.py) - 稳定版
-- ✅ **经过验证**：稳定可靠，经过大量测试
-- ✅ **简单易用**：配置文件驱动，使用简单
-- ✅ **功能完整**：支持所有内容类型下载
-- ✅ **单个视频下载**：完全正常工作
-- ⚠️ **需要手动配置**：需要手动获取和配置 Cookie
+### V1.0 (DouYinCommand.py) - Ổn định
+- ✅ **Đã kiểm chứng**: ổn định, đã thử nghiệm nhiều
+- ✅ **Dễ dùng**: điều khiển qua file cấu hình
+- ✅ **Đầy đủ tính năng**: hỗ trợ mọi loại nội dung
+- ✅ **Tải đơn lẻ**: hoạt động bình thường cho video đơn
+- ⚠️ **Cần cấu hình thủ công**: phải tự lấy và khai báo Cookie
 
-### V2.0 (downloader.py) - 增强版
-- 🚀 **自动 Cookie 管理**：支持自动获取和刷新 Cookie
-- 🚀 **统一入口**：整合所有功能到单一脚本
-- 🚀 **异步架构**：性能更优，支持并发下载
-- 🚀 **智能重试**：自动重试和错误恢复
-- 🚀 **增量下载**：支持增量更新，避免重复下载
-- ⚠️ **单个视频下载**：目前 API 返回空响应（已知问题）
-- ✅ **用户主页下载**：完全正常工作
+### V2.0 (downloader.py) - Tăng cường
+- 🚀 **Quản lý Cookie tự động**: tự lấy và làm mới Cookie
+- 🚀 **Một lối vào duy nhất**: gom mọi tính năng vào một script
+- 🚀 **Kiến trúc bất đồng bộ**: hiệu năng tốt, hỗ trợ tải song song
+- 🚀 **Tự động thử lại**: tự lặp lại và phục hồi lỗi
+- 🚀 **Tải bổ sung**: tránh tải trùng lặp
+- ⚠️ **Tải video đơn**: hiện API trả về rỗng (lỗi đã biết)
+- ✅ **Tải trang cá nhân**: hoạt động hoàn chỉnh
 
-## 🎯 V1.0 使用指南
+## 🎯 V1.0 Hướng dẫn
 
-### 配置文件设置
+### Thiết lập file cấu hình
 
-1. **编辑配置文件**
+1. **Chỉnh file cấu hình**
 ```bash
 cp config.example.yml config.yml
-# 编辑 config.yml 文件
+# Chỉnh sửa file config.yml
 ```
 
-2. **配置示例**
+2. **Ví dụ cấu hình**
 ```yaml
-# 下载链接
+# Liên kết tải
 link:
-  - https://v.douyin.com/xxxxx/                    # 单个视频
-  - https://www.douyin.com/user/xxxxx              # 用户主页
-  - https://www.douyin.com/collection/xxxxx        # 合集
+  - https://v.douyin.com/xxxxx/                    # Video đơn
+  - https://www.douyin.com/user/xxxxx              # Trang cá nhân
+  - https://www.douyin.com/collection/xxxxx        # Bộ sưu tập
 
-# 保存路径
+# Đường dẫn lưu
 path: ./Downloaded/
 
-# Cookie配置（必填）
+# Cấu hình Cookie (bắt buộc)
 cookies:
   msToken: YOUR_MS_TOKEN_HERE
   ttwid: YOUR_TTWID_HERE
@@ -93,311 +93,228 @@ cookies:
   passport_csrf_token: YOUR_PASSPORT_CSRF_TOKEN_HERE
   sid_guard: YOUR_SID_GUARD_HERE
 
-# 下载选项
-music: True    # 下载音乐
-cover: True    # 下载封面
-avatar: True   # 下载头像
-json: True     # 保存JSON数据
+# Tuỳ chọn tải
+music: True    # Tải nhạc
+cover: True    # Tải ảnh bìa
+avatar: True   # Tải avatar
+json: True     # Lưu dữ liệu JSON
 
-# 下载模式
+# Chế độ tải
 mode:
-  - post       # 下载发布的作品
-  # - like     # 下载喜欢的作品
-  # - mix      # 下载合集
+  - post       # Tải tác phẩm đã đăng
+  # - like     # Tải tác phẩm đã thích
+  # - mix      # Tải bộ sưu tập
 
-# 下载数量（0表示全部）
+# Số lượng tải (0 là tất cả)
 number:
-  post: 0      # 发布作品数量
-  like: 0      # 喜欢作品数量
-  allmix: 0    # 合集数量
-  mix: 0       # 单个合集内作品数量
+  post: 0      # Số tác phẩm đã đăng
+  like: 0      # Số tác phẩm đã thích
+  allmix: 0    # Số bộ sưu tập
+  mix: 0       # Số tác phẩm trong một bộ sưu tập
 
-# 其他设置
-thread: 5      # 下载线程数
-database: True # 使用数据库记录
+# Cài đặt khác
+thread: 5      # Số luồng tải
+database: True # Dùng cơ sở dữ liệu ghi nhận
 ```
 
-### 运行程序
+### Chạy chương trình
 
 ```bash
-# 使用配置文件运行
+# Dùng file cấu hình
 python DouYinCommand.py
 
-# 或者使用命令行参数
+# Hoặc dùng tham số dòng lệnh
 python DouYinCommand.py --cmd False
 ```
 
-### 使用示例
+### Ví dụ sử dụng
 
 ```bash
-# 下载单个视频
-# 在 config.yml 中设置 link 为单个视频链接
+# Tải video đơn
+# Đặt link trong config.yml thành liên kết video
 python DouYinCommand.py
 
-# 下载用户主页
-# 在 config.yml 中设置 link 为用户主页链接
+# Tải trang cá nhân
+# Đặt link trong config.yml thành liên kết trang cá nhân
 python DouYinCommand.py
 
-# 下载合集
-# 在 config.yml 中设置 link 为合集链接
+# Tải bộ sưu tập
+# Đặt link trong config.yml thành liên kết bộ sưu tập
 python DouYinCommand.py
 ```
 
-## 🚀 V2.0 使用指南
+## 🚀 V2.0 Hướng dẫn
 
-### 命令行使用
+### Dòng lệnh
 
 ```bash
-# 下载单个视频（需要先配置 Cookie）
+# Tải video đơn (cần cấu hình Cookie trước)
 python downloader.py -u "https://v.douyin.com/xxxxx/"
 
-# 下载用户主页（推荐）
+# Tải trang cá nhân (khuyến nghị)
 python downloader.py -u "https://www.douyin.com/user/xxxxx"
 
-# 自动获取 Cookie 并下载
+# Tự lấy Cookie rồi tải
 python downloader.py --auto-cookie -u "https://www.douyin.com/user/xxxxx"
 
-# 指定保存路径
-python downloader.py -u "链接" --path "./my_videos/"
+# Chỉ định đường dẫn lưu
+python downloader.py -u "link" --path "./my_videos/"
 
-# 使用配置文件
+# Dùng file cấu hình
 python downloader.py --config
 ```
 
-### 配置文件使用
+### Dùng file cấu hình
 
-1. **创建配置文件**
+1. **Tạo file cấu hình**
 ```bash
 cp config.example.yml config_simple.yml
 ```
 
-2. **配置示例**
+2. **Ví dụ cấu hình**
 ```yaml
-# 下载链接
+# Liên kết tải
 link:
   - https://www.douyin.com/user/xxxxx
 
-# 保存路径
+# Đường dẫn lưu
 path: ./Downloaded/
 
-# 自动 Cookie 管理
+# Quản lý Cookie tự động
 auto_cookie: true
 
-# 下载选项
+# Tuỳ chọn tải
 music: true
 cover: true
 avatar: true
 json: true
 
-# 下载模式
+# Chế độ tải
 mode:
   - post
 
-# 下载数量
+# Số lượng tải
 number:
   post: 10
 
-# 增量下载
+# Tải bổ sung
 increase:
   post: false
 
-# 数据库
+# Cơ sở dữ liệu
 database: true
 ```
 
-3. **运行程序**
+3. **Chạy chương trình**
 ```bash
 python downloader.py --config
 ```
 
-### 命令行参数
+### Tham số dòng lệnh
 
 ```bash
-python downloader.py [选项] [链接...]
+python downloader.py [tuỳ chọn] [link...]
 
-选项：
-  -u, --url URL          下载链接
-  -p, --path PATH        保存路径
-  -c, --config           使用配置文件
-  --auto-cookie          自动获取 Cookie
-  --cookies COOKIES      手动指定 Cookie
-  -h, --help            显示帮助信息
+tuỳ chọn:
+  -u, --url URL          Liên kết tải
+  -p, --path PATH        Đường dẫn lưu
+  -c, --config           Dùng file cấu hình
+  --auto-cookie          Tự lấy Cookie
+  --cookies COOKIES      Nhập Cookie thủ công
+  -h, --help            Hiển thị trợ giúp
 ```
 
-## 🍪 Cookie 配置工具
+## 🍪 Công cụ cấu hình Cookie
 
-### 1. cookie_extractor.py - 自动获取工具
+### 1. cookie_extractor.py - Lấy tự động
 
-**功能**：使用 Playwright 自动打开浏览器，自动获取 Cookie
+**Chức năng**: dùng Playwright mở trình duyệt và tự lấy Cookie
 
-**使用方式**：
+**Cách dùng**:
 ```bash
-# 安装 Playwright
+# Cài Playwright
 pip install playwright
 playwright install chromium
 
-# 运行自动获取
+# Chạy lấy tự động
 python cookie_extractor.py
 ```
 
-**特点**：
-- ✅ 自动打开浏览器
-- ✅ 支持扫码登录
-- ✅ 自动检测登录状态
-- ✅ 自动保存到配置文件
-- ✅ 支持多种登录方式
+**Đặc điểm**:
+- ✅ Mở trình duyệt tự động
+- ✅ Hỗ trợ quét mã đăng nhập
+- ✅ Tự phát hiện trạng thái đăng nhập
+- ✅ Tự lưu vào file cấu hình
+- ✅ Hỗ trợ nhiều cách đăng nhập
 
-**使用步骤**：
-1. 运行 `python cookie_extractor.py`
-2. 选择提取方式（推荐选择1）
-3. 在打开的浏览器中完成登录
-4. 程序自动提取并保存 Cookie
+**Các bước**:
+1. Chạy `python cookie_extractor.py`
+2. Chọn phương thức trích xuất (gợi ý chọn 1)
+3. Đăng nhập trong cửa sổ trình duyệt
+4. Chương trình tự trích và lưu Cookie
 
-### 2. get_cookies_manual.py - 手动获取工具
+### 2. get_cookies_manual.py - Lấy thủ công
 
-**功能**：通过浏览器开发者工具手动获取 Cookie
+**Chức năng**: lấy Cookie qua công cụ DevTools của trình duyệt
 
-**使用方式**：
+**Cách dùng**:
 ```bash
 python get_cookies_manual.py
 ```
 
-**特点**：
-- ✅ 无需安装 Playwright
-- ✅ 详细的操作教程
-- ✅ 支持 Cookie 验证
-- ✅ 自动保存到配置文件
-- ✅ 支持备份和恢复
+**Đặc điểm**:
+- ✅ Không cần cài Playwright
+- ✅ Hướng dẫn thao tác chi tiết
+- ✅ Hỗ trợ kiểm tra Cookie
+- ✅ Tự lưu vào file cấu hình
+- ✅ Hỗ trợ sao lưu và khôi phục
 
-**使用步骤**：
-1. 运行 `python get_cookies_manual.py`
-2. 选择"获取新的Cookie"
-3. 按照教程在浏览器中获取 Cookie
-4. 粘贴 Cookie 内容
-5. 程序自动解析并保存
+**Các bước**:
+1. Chạy `python get_cookies_manual.py`
+2. Chọn "Lấy Cookie mới"
+3. Làm theo hướng dẫn trong trình duyệt để lấy Cookie
+4. Dán nội dung Cookie
+5. Chương trình tự phân tích và lưu
 
-### Cookie 获取教程
+### Hướng dẫn lấy Cookie
 
-#### 方法一：浏览器开发者工具
+#### Cách 1: DevTools của trình duyệt
 
-1. 打开浏览器，访问 [抖音网页版](https://www.douyin.com)
-2. 登录你的抖音账号
-3. 按 `F12` 打开开发者工具
-4. 切换到 `Network` 标签页
-5. 刷新页面，找到任意请求
-6. 在请求头中找到 `Cookie` 字段
-7. 复制以下关键 cookie 值：
+1. Mở trình duyệt, truy cập [Douyin Web](https://www.douyin.com)
+2. Đăng nhập tài khoản Douyin
+3. Nhấn `F12` mở DevTools
+4. Chuyển sang tab `Network`
+5. Refresh trang, chọn bất kỳ request nào
+6. Tìm trường `Cookie` trong request header
+7. Sao chép các cookie quan trọng:
    - `msToken`
    - `ttwid`
    - `odin_tt`
    - `passport_csrf_token`
    - `sid_guard`
 
-#### 方法二：使用自动工具
+#### Cách 2: Dùng công cụ tự động
 
 ```bash
-# 推荐使用自动工具
+# Khuyến nghị dùng công cụ tự động
 python cookie_extractor.py
 ```
 
-## 📋 支持的链接类型
+## 📋 Các loại liên kết hỗ trợ
 
-### 🎬 视频内容
-- **单个视频分享链接**：`https://v.douyin.com/xxxxx/`
-- **单个视频直链**：`https://www.douyin.com/video/xxxxx`
-- **图集作品**：`https://www.douyin.com/note/xxxxx`
+### 🎬 Nội dung video
+- **Liên kết chia sẻ video đơn**: `https://v.douyin.com/xxxxx/`
+- **Liên kết trực tiếp video đơn**: `https://www.douyin.com/video/xxxxx`
+- **Tác phẩm bộ ảnh**: `https://www.douyin.com/note/xxxxx`
 
-### 👤 用户内容
-- **用户主页**：`https://www.douyin.com/user/xxxxx`
-  - 支持下载用户发布的所有作品
-  - 支持下载用户喜欢的作品（需要权限）
+### 👤 Nội dung người dùng
+- **Trang cá nhân**: `https://www.douyin.com/user/xxxxx`
+  - Hỗ trợ tải tất cả tác phẩm đã đăng
+  - Hỗ trợ tải tác phẩm đã thích (cần quyền)
 
-### 📚 合集内容
-- **用户合集**：`https://www.douyin.com/collection/xxxxx`
-- **音乐合集**：`https://www.douyin.com/music/xxxxx`
+### 📚 Nội dung bộ sưu tập
+- **Bộ sưu tập người dùng**: `https://www.douyin.com/collection/xxxxx`
+- **Bộ sưu tập nhạc**: `https://www.douyin.com/music/xxxxx`
 
-### 🔴 直播内容
-- **直播间**：`https://live.douyin.com/xxxxx`
-
-## 🔧 常见问题
-
-### Q: 为什么单个视频下载失败？
-**A**: 
-- V1.0：请检查 Cookie 是否有效，确保包含必要的字段
-- V2.0：目前已知问题，API 返回空响应，建议使用用户主页下载
-
-### Q: Cookie 过期怎么办？
-**A**: 
-- 使用 `python cookie_extractor.py` 重新获取
-- 或使用 `python get_cookies_manual.py` 手动获取
-
-### Q: 下载速度慢怎么办？
-**A**: 
-- 调整 `thread` 参数增加并发数
-- 检查网络连接
-- 避免同时下载过多内容
-
-### Q: 如何批量下载？
-**A**: 
-- V1.0：在 `config.yml` 中添加多个链接
-- V2.0：使用命令行传入多个链接或使用配置文件
-
-### Q: 支持哪些格式？
-**A**: 
-- 视频：MP4 格式（无水印）
-- 图片：JPG 格式
-- 音频：MP3 格式
-- 数据：JSON 格式
-
-## 📝 更新日志
-
-### V2.0 (2025-08)
-- ✅ **统一入口**：整合所有功能到 `downloader.py`
-- ✅ **自动 Cookie 管理**：支持自动获取和刷新
-- ✅ **异步架构**：性能优化，支持并发下载
-- ✅ **智能重试**：自动重试和错误恢复
-- ✅ **增量下载**：支持增量更新
-- ✅ **用户主页下载**：完全正常工作
-- ⚠️ **单个视频下载**：API 返回空响应（已知问题）
-
-### V1.0 (2024-12)
-- ✅ **稳定可靠**：经过大量测试验证
-- ✅ **功能完整**：支持所有内容类型
-- ✅ **单个视频下载**：完全正常工作
-- ✅ **配置文件驱动**：简单易用
-- ✅ **数据库支持**：记录下载历史
-
-## ⚖️ 法律声明
-
-- 本项目仅供**学习交流**使用
-- 请遵守相关法律法规和平台服务条款
-- 不得用于商业用途或侵犯他人权益
-- 下载内容请尊重原作者版权
-
-## 🤝 贡献指南
-
-欢迎提交 Issue 和 Pull Request！
-
-### 报告问题
-- 使用 [Issues](https://github.com/jiji262/douyin-downloader/issues) 报告 bug
-- 请提供详细的错误信息和复现步骤
-
-### 功能建议
-- 在 Issues 中提出新功能建议
-- 详细描述功能需求和使用场景
-
-## 📄 许可证
-
-本项目采用 [MIT License](LICENSE) 开源许可证。
-
----
-
-<div align="center">
-
-**如果这个项目对你有帮助，请给个 ⭐ Star 支持一下！**
-
-[🐛 报告问题](https://github.com/jiji262/douyin-downloader/issues) • [💡 功能建议](https://github.com/jiji262/douyin-downloader/issues) • [📖 查看文档](https://github.com/jiji262/douyin-downloader/wiki)
-
-Made with ❤️ by [jiji262](https://github.com/jiji262)
-
-</div>
+### 🔴 Nội dung livestream
+- **Phòng livestream**: `https://live.douyin.com/xxxxx`
