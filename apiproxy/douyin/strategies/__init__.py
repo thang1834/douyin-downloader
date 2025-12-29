@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 """
-抖音下载策略模块
-包含多种下载策略的实现
+Module chiến lược tải xuống Douyin
+Bao gồm implementation của nhiều chiến lược tải xuống
 """
 
 from .base import IDownloadStrategy, DownloadTask, DownloadResult, TaskType, TaskStatus

@@ -17,16 +17,16 @@ class DouyinApi(object):
     def __init__(self):
         self.urls = Urls()
         self.result = Result()
-        # 用于设置重复请求某个接口的最大时间
+        # Dùng để thiết lập thời gian tối đa cho việc lặp lại request một interface
         self.timeout = 10
 
-    # 从分享链接中提取网址
+    # Trích xuất URL từ liên kết chia sẻ
     def getShareLink(self, string):
-        # findall() 查找匹配正则表达式的字符串
+        # findall() tìm chuỗi khớp với biểu thức chính quy
         return re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', string)[0]
 
-    # 得到 作品id 或者 用户id
-    # 传入 url 支持 https://www.iesdouyin.com 与 https://v.douyin.com
+    # Lấy ID tác phẩm hoặc ID người dùng
+    # URL truyền vào hỗ trợ https://www.iesdouyin.com và https://v.douyin.com
     def getKey(self, url):
         key = None
         key_type = None
@@ -34,20 +34,20 @@ class DouyinApi(object):
         try:
             r = requests.get(url=url, headers=douyin_headers)
         except Exception as e:
-            print('[  错误  ]:输入链接有误！\r')
+            print('[  Lỗi  ]:Liên kết nhập vào không hợp lệ!\r')
             return key_type, key
 
-        # 抖音把图集更新为note
-        # 作品 第一步解析出来的链接是share/video/{aweme_id}
+        # Douyin đã cập nhật bộ ảnh thành note
+        # Tác phẩm: liên kết được phân tích ở bước đầu là share/video/{aweme_id}
         # https://www.iesdouyin.com/share/video/7037827546599263488/?region=CN&mid=6939809470193126152&u_code=j8a5173b&did=MS4wLjABAAAA1DICF9-A9M_CiGqAJZdsnig5TInVeIyPdc2QQdGrq58xUgD2w6BqCHovtqdIDs2i&iid=MS4wLjABAAAAomGWi4n2T0H9Ab9x96cUZoJXaILk4qXOJlJMZFiK6b_aJbuHkjN_f0mBzfy91DX1&with_sec_did=1&titleType=title&schema_type=37&from_ssr=1&utm_source=copy&utm_campaign=client_share&utm_medium=android&app=aweme
-        # 用户 第一步解析出来的链接是share/user/{sec_uid}
+        # Người dùng: liên kết được phân tích ở bước đầu là share/user/{sec_uid}
         # https://www.iesdouyin.com/share/user/MS4wLjABAAAA06y3Ctu8QmuefqvUSU7vr0c_ZQnCqB0eaglgkelLTek?did=MS4wLjABAAAA1DICF9-A9M_CiGqAJZdsnig5TInVeIyPdc2QQdGrq58xUgD2w6BqCHovtqdIDs2i&iid=MS4wLjABAAAAomGWi4n2T0H9Ab9x96cUZoJXaILk4qXOJlJMZFiK6b_aJbuHkjN_f0mBzfy91DX1&with_sec_did=1&sec_uid=MS4wLjABAAAA06y3Ctu8QmuefqvUSU7vr0c_ZQnCqB0eaglgkelLTek&from_ssr=1&u_code=j8a5173b&timestamp=1674540164&ecom_share_track_params=%7B%22is_ec_shopping%22%3A%221%22%2C%22secuid%22%3A%22MS4wLjABAAAA-jD2lukp--I21BF8VQsmYUqJDbj3FmU-kGQTHl2y1Cw%22%2C%22enter_from%22%3A%22others_homepage%22%2C%22share_previous_page%22%3A%22others_homepage%22%7D&utm_source=copy&utm_campaign=client_share&utm_medium=android&app=aweme
-        # 合集
+        # Bộ sưu tập
         # https://www.douyin.com/collection/7093490319085307918
         urlstr = str(r.request.path_url)
 
         if "/user/" in urlstr:
-            # 获取用户 sec_uid
+            # Lấy sec_uid người dùng
             if '?' in r.request.path_url:
                 for one in re.finditer(r'user\/([\d\D]*)([?])', str(r.request.path_url)):
                     key = one.group(1)
@@ -56,23 +56,23 @@ class DouyinApi(object):
                     key = one.group(1)
             key_type = "user"
         elif "/video/" in urlstr:
-            # 获取作品 aweme_id
+            # Lấy aweme_id tác phẩm
             key = re.findall('video/(\d+)?', urlstr)[0]
             key_type = "aweme"
         elif "/note/" in urlstr:
-            # 获取note aweme_id
+            # Lấy aweme_id note
             key = re.findall('note/(\d+)?', urlstr)[0]
             key_type = "aweme"
         elif "/mix/detail/" in urlstr:
-            # 获取合集 id
+            # Lấy ID bộ sưu tập
             key = re.findall('/mix/detail/(\d+)?', urlstr)[0]
             key_type = "mix"
         elif "/collection/" in urlstr:
-            # 获取合集 id
+            # Lấy ID bộ sưu tập
             key = re.findall('/collection/(\d+)?', urlstr)[0]
             key_type = "mix"
         elif "/music/" in urlstr:
-            # 获取原声 id
+            # Lấy ID nhạc gốc
             key = re.findall('music/(\d+)?', urlstr)[0]
             key_type = "music"
         elif "/webcast/reflow/" in urlstr:
@@ -88,7 +88,7 @@ class DouyinApi(object):
             key_type = "live"
 
         if key is None or key_type is None:
-            print('[  错误  ]:输入链接有误！无法获取 id\r')
+            print('[  Lỗi  ]:Liên kết nhập vào không hợp lệ! Không thể lấy id\r')
             return key_type, key
 
         return key_type, key
@@ -96,7 +96,7 @@ class DouyinApi(object):
     def getAwemeInfoApi(self, aweme_id):
         if aweme_id is None:
             return None
-        start = time.time()  # 开始时间
+        start = time.time()  # Thời gian bắt đầu
         while True:
             try:
                 jx_url = self.urls.POST_DETAIL + utils.getXbogus(
@@ -107,14 +107,14 @@ class DouyinApi(object):
                 if datadict is not None and datadict["status_code"] == 0:
                     break
             except Exception as e:
-                end = time.time()  # 结束时间
+                end = time.time()  # Thời gian kết thúc
                 if end - start > self.timeout:
                     return None
 
-        # 清空self.awemeDict
+        # Xóa self.awemeDict
         self.result.clearDict(self.result.awemeDict)
 
-        # 默认为视频
+        # Mặc định là video
         awemeType = 0
         try:
             if datadict['aweme_detail']["images"] is not None:
@@ -122,7 +122,7 @@ class DouyinApi(object):
         except Exception as e:
             pass
 
-        # 转换成我们自己的格式
+        # Chuyển đổi sang định dạng của chúng ta
         self.result.dataConvert(awemeType, self.result.awemeDict, datadict['aweme_detail'])
 
         return self.result.awemeDict, datadict
@@ -133,7 +133,7 @@ class DouyinApi(object):
 
         awemeList = []
 
-        start = time.time()  # 开始时间
+        start = time.time()  # Thời gian bắt đầu
         while True:
             try:
                 if mode == "post":
@@ -150,15 +150,15 @@ class DouyinApi(object):
                 if datadict is not None and datadict["status_code"] == 0:
                     break
             except Exception as e:
-                end = time.time()  # 结束时间
+                end = time.time()  # Thời gian kết thúc
                 if end - start > self.timeout:
                     return None
 
         for aweme in datadict["aweme_list"]:
-            # 清空self.awemeDict
+            # Xóa self.awemeDict
             self.result.clearDict(self.result.awemeDict)
 
-            # 默认为视频
+            # Mặc định là video
             awemeType = 0
             try:
                 if aweme["images"] is not None:
@@ -166,7 +166,7 @@ class DouyinApi(object):
             except Exception as e:
                 pass
 
-            # 转换成我们自己的格式
+            # Chuyển đổi sang định dạng của chúng ta
             self.result.dataConvert(awemeType, self.result.awemeDict, aweme)
 
             if self.result.awemeDict is not None and self.result.awemeDict != {}:
@@ -175,7 +175,7 @@ class DouyinApi(object):
         return awemeList, datadict, datadict["max_cursor"], datadict["has_more"]
 
     def getLiveInfoApi(self, web_rid: str):
-        start = time.time()  # 开始时间
+        start = time.time()  # Thời gian bắt đầu
         while True:
             try:
                 live_api = self.urls.LIVE + utils.getXbogus(
@@ -186,54 +186,54 @@ class DouyinApi(object):
                 if live_json != {} and live_json['status_code'] == 0:
                     break
             except Exception as e:
-                end = time.time()  # 结束时间
+                end = time.time()  # Thời gian kết thúc
                 if end - start > self.timeout:
                     return None
 
-        # 清空字典
+        # Xóa dictionary
         self.result.clearDict(self.result.liveDict)
 
-        # 类型
+        # Loại
         self.result.liveDict["awemeType"] = 2
-        # 是否在播
+        # Có đang phát sóng không
         self.result.liveDict["status"] = live_json['data']['data'][0]['status']
 
         if self.result.liveDict["status"] == 4:
             return self.result.liveDict, live_json
 
-        # 直播标题
+        # Tiêu đề livestream
         self.result.liveDict["title"] = live_json['data']['data'][0]['title']
 
-        # 直播cover
+        # Ảnh bìa livestream
         self.result.liveDict["cover"] = live_json['data']['data'][0]['cover']['url_list'][0]
 
-        # 头像
+        # Avatar
         self.result.liveDict["avatar"] = live_json['data']['data'][0]['owner']['avatar_thumb']['url_list'][0].replace(
             "100x100", "1080x1080")
 
-        # 观看人数
+        # Số người xem
         self.result.liveDict["user_count"] = live_json['data']['data'][0]['user_count_str']
 
-        # 昵称
+        # Biệt danh
         self.result.liveDict["nickname"] = live_json['data']['data'][0]['owner']['nickname']
 
         # sec_uid
         self.result.liveDict["sec_uid"] = live_json['data']['data'][0]['owner']['sec_uid']
 
-        # 直播间观看状态
+        # Trạng thái xem livestream
         self.result.liveDict["display_long"] = live_json['data']['data'][0]['room_view_stats']['display_long']
 
-        # 推流
+        # Stream
         self.result.liveDict["flv_pull_url"] = live_json['data']['data'][0]['stream_url']['flv_pull_url']
 
         try:
-            # 分区
+            # Khu vực
             self.result.liveDict["partition"] = live_json['data']['partition_road_map']['partition']['title']
             self.result.liveDict["sub_partition"] = \
                 live_json['data']['partition_road_map']['sub_partition']['partition']['title']
         except Exception as e:
-            self.result.liveDict["partition"] = '无'
-            self.result.liveDict["sub_partition"] = '无'
+            self.result.liveDict["partition"] = 'Không có'
+            self.result.liveDict["sub_partition"] = 'Không có'
 
         flv = []
 
@@ -250,7 +250,7 @@ class DouyinApi(object):
 
         awemeList = []
 
-        start = time.time()  # 开始时间
+        start = time.time()  # Thời gian bắt đầu
         while True:
             try:
                 url = self.urls.USER_MIX + utils.getXbogus(
@@ -261,16 +261,16 @@ class DouyinApi(object):
                 if datadict is not None:
                     break
             except Exception as e:
-                end = time.time()  # 结束时间
+                end = time.time()  # Thời gian kết thúc
                 if end - start > self.timeout:
                     return None
 
         for aweme in datadict["aweme_list"]:
 
-            # 清空self.awemeDict
+            # Xóa self.awemeDict
             self.result.clearDict(self.result.awemeDict)
 
-            # 默认为视频
+            # Mặc định là video
             awemeType = 0
             try:
                 if aweme["images"] is not None:
@@ -278,7 +278,7 @@ class DouyinApi(object):
             except Exception as e:
                 pass
 
-            # 转换成我们自己的格式
+            # Chuyển đổi sang định dạng của chúng ta
             self.result.dataConvert(awemeType, self.result.awemeDict, aweme)
 
             if self.result.awemeDict is not None and self.result.awemeDict != {}:
@@ -293,7 +293,7 @@ class DouyinApi(object):
 
         mixIdlist = []
 
-        start = time.time()  # 开始时间
+        start = time.time()  # Thời gian bắt đầu
         while True:
             try:
                 url = self.urls.USER_MIX_LIST + utils.getXbogus(
@@ -304,7 +304,7 @@ class DouyinApi(object):
                 if datadict is not None and datadict["status_code"] == 0:
                     break
             except Exception as e:
-                end = time.time()  # 结束时间
+                end = time.time()  # Thời gian kết thúc
                 if end - start > self.timeout:
                     return None
 
@@ -321,7 +321,7 @@ class DouyinApi(object):
 
         awemeList = []
 
-        start = time.time()  # 开始时间
+        start = time.time()  # Thời gian bắt đầu
         while True:
             try:
                 url = self.urls.MUSIC + utils.getXbogus(
@@ -332,15 +332,15 @@ class DouyinApi(object):
                 if datadict is not None and datadict["status_code"] == 0:
                     break
             except Exception as e:
-                end = time.time()  # 结束时间
+                end = time.time()  # Thời gian kết thúc
                 if end - start > self.timeout:
                     return None
 
         for aweme in datadict["aweme_list"]:
-            # 清空self.awemeDict
+            # Xóa self.awemeDict
             self.result.clearDict(self.result.awemeDict)
 
-            # 默认为视频
+            # Mặc định là video
             awemeType = 0
             try:
                 if aweme["images"] is not None:
@@ -348,7 +348,7 @@ class DouyinApi(object):
             except Exception as e:
                 pass
 
-            # 转换成我们自己的格式
+            # Chuyển đổi sang định dạng của chúng ta
             self.result.dataConvert(awemeType, self.result.awemeDict, aweme)
 
             if self.result.awemeDict is not None and self.result.awemeDict != {}:
@@ -360,9 +360,9 @@ class DouyinApi(object):
         if sec_uid is None:
             return None
 
-        start = time.time()  # 开始时间
+        start = time.time()  # Thời gian bắt đầu
         while True:
-            # 接口不稳定, 有时服务器不返回数据, 需要重新获取
+            # Interface không ổn định, đôi khi server không trả về dữ liệu, cần lấy lại
             try:
                 url = self.urls.USER_DETAIL + utils.getXbogus(
                         f'sec_user_id={sec_uid}&device_platform=webapp&aid=6383')
@@ -373,7 +373,7 @@ class DouyinApi(object):
                 if datadict is not None and datadict["status_code"] == 0:
                     return datadict
             except Exception as e:
-                end = time.time()  # 结束时间
+                end = time.time()  # Thời gian kết thúc
                 if end - start > self.timeout:
                     return None
 

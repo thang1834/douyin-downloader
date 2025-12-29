@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 """
-智能重试策略
-包装其他策略并提供智能重试机制
+Chiến lược thử lại thông minh
+Bọc các chiến lược khác và cung cấp cơ chế thử lại thông minh
 """
 
 import asyncio
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 class RetryStrategy(IDownloadStrategy):
-    """智能重试策略，包装其他策略并提供重试机制"""
+    """Chiến lược thử lại thông minh, bọc các chiến lược khác và cung cấp cơ chế thử lại"""
     
     def __init__(
         self,
@@ -28,13 +28,13 @@ class RetryStrategy(IDownloadStrategy):
         exponential_backoff: bool = True
     ):
         """
-        初始化重试策略
+        Khởi tạo chiến lược thử lại
         
         Args:
-            strategy: 被包装的策略
-            max_retries: 最大重试次数
-            retry_delays: 自定义重试延迟列表
-            exponential_backoff: 是否使用指数退避
+            strategy: Chiến lược được bọc
+            max_retries: Số lần thử lại tối đa
+            retry_delays: Danh sách độ trễ thử lại tùy chỉnh
+            exponential_backoff: Có sử dụng exponential backoff không
         """
         self.strategy = strategy
         self.max_retries = max_retries
@@ -51,58 +51,58 @@ class RetryStrategy(IDownloadStrategy):
         return f"Retry({self.strategy.name})"
     
     def get_priority(self) -> int:
-        """继承被包装策略的优先级"""
+        """Kế thừa ưu tiên của chiến lược được bọc"""
         return self.strategy.get_priority()
     
     async def can_handle(self, task: DownloadTask) -> bool:
-        """判断是否可以处理任务"""
+        """Đánh giá xem có thể xử lý nhiệm vụ không"""
         return await self.strategy.can_handle(task)
     
     async def download(self, task: DownloadTask) -> DownloadResult:
-        """执行下载任务，带重试机制"""
+        """Thực thi nhiệm vụ tải xuống, có cơ chế thử lại"""
         original_retry_count = task.retry_count
         last_error = None
         
         for attempt in range(self.max_retries):
             try:
-                # 更新任务状态
+                # Cập nhật trạng thái nhiệm vụ
                 if attempt > 0:
                     task.status = TaskStatus.RETRYING
-                    logger.info(f"任务 {task.task_id} 第 {attempt + 1}/{self.max_retries} 次重试")
+                    logger.info(f"Nhiệm vụ {task.task_id} lần thử lại thứ {attempt + 1}/{self.max_retries}")
                 
-                # 执行下载
+                # Thực thi tải xuống
                 result = await self.strategy.download(task)
                 
                 if result.success:
                     if attempt > 0:
                         self.retry_stats['successful_retries'] += 1
-                        logger.info(f"任务 {task.task_id} 重试成功 (第 {attempt + 1} 次)")
+                        logger.info(f"Nhiệm vụ {task.task_id} thử lại thành công (lần {attempt + 1})")
                     return result
                 
-                # 下载失败，准备重试
+                # Tải xuống thất bại, chuẩn bị thử lại
                 last_error = result.error_message
                 
-                # 检查是否应该重试
+                # Kiểm tra xem có nên thử lại không
                 if not self._should_retry(result, attempt):
-                    logger.warning(f"任务 {task.task_id} 不符合重试条件，停止重试")
+                    logger.warning(f"Nhiệm vụ {task.task_id} không đáp ứng điều kiện thử lại, dừng thử lại")
                     return result
                 
-                # 计算延迟时间
+                # Tính toán thời gian trễ
                 delay = self._calculate_delay(attempt)
-                logger.info(f"任务 {task.task_id} 将在 {delay} 秒后重试")
+                logger.info(f"Nhiệm vụ {task.task_id} sẽ thử lại sau {delay} giây")
                 await asyncio.sleep(delay)
                 
-                # 增加重试计数
+                # Tăng số đếm thử lại
                 task.retry_count += 1
                 self.retry_stats['total_retries'] += 1
                 
             except Exception as e:
                 last_error = str(e)
-                logger.error(f"任务 {task.task_id} 执行异常: {e}")
+                logger.error(f"Nhiệm vụ {task.task_id} thực thi lỗi: {e}")
                 
                 if attempt < self.max_retries - 1:
                     delay = self._calculate_delay(attempt)
-                    logger.info(f"任务 {task.task_id} 将在 {delay} 秒后重试")
+                    logger.info(f"Nhiệm vụ {task.task_id} sẽ thử lại sau {delay} giây")
                     await asyncio.sleep(delay)
                     task.retry_count += 1
                     self.retry_stats['total_retries'] += 1
@@ -110,28 +110,28 @@ class RetryStrategy(IDownloadStrategy):
                     self.retry_stats['failed_retries'] += 1
                     break
         
-        # 所有重试都失败
+        # Tất cả các lần thử lại đều thất bại
         task.status = TaskStatus.FAILED
         self.retry_stats['failed_retries'] += 1
         
         return DownloadResult(
             success=False,
             task_id=task.task_id,
-            error_message=f"重试 {self.max_retries} 次后仍然失败: {last_error}",
+            error_message=f"Vẫn thất bại sau {self.max_retries} lần thử lại: {last_error}",
             retry_count=task.retry_count
         )
     
     def _should_retry(self, result: DownloadResult, attempt: int) -> bool:
-        """判断是否应该重试"""
-        # 如果已经达到最大重试次数，不重试
+        """Đánh giá xem có nên thử lại không"""
+        # Nếu đã đạt số lần thử lại tối đa, không thử lại
         if attempt >= self.max_retries - 1:
             return False
         
-        # 如果没有错误消息，可能是未知错误，应该重试
+        # Nếu không có thông báo lỗi, có thể là lỗi không xác định, nên thử lại
         if not result.error_message:
             return True
         
-        # 检查是否是可重试的错误
+        # Kiểm tra xem có phải lỗi có thể thử lại không
         retryable_errors = [
             'timeout',
             'connection',
@@ -140,8 +140,8 @@ class RetryStrategy(IDownloadStrategy):
             '503',  # Service Unavailable
             '502',  # Bad Gateway
             '504',  # Gateway Timeout
-            '空响应',
-            '返回空',
+            'phản hồi rỗng',
+            'trả về rỗng',
             'empty response',
             'temporary'
         ]
@@ -151,7 +151,7 @@ class RetryStrategy(IDownloadStrategy):
             if error in error_lower:
                 return True
         
-        # 检查是否是不可重试的错误
+        # Kiểm tra xem có phải lỗi không thể thử lại không
         non_retryable_errors = [
             '404',  # Not Found
             '403',  # Forbidden
@@ -159,41 +159,41 @@ class RetryStrategy(IDownloadStrategy):
             'invalid',
             'not found',
             'deleted',
-            '已删除',
-            '不存在'
+            'đã xóa',
+            'không tồn tại'
         ]
         
         for error in non_retryable_errors:
             if error in error_lower:
                 return False
         
-        # 默认重试
+        # Mặc định thử lại
         return True
     
     def _calculate_delay(self, attempt: int) -> float:
-        """计算重试延迟时间"""
+        """Tính toán thời gian trễ thử lại"""
         if self.exponential_backoff:
-            # 指数退避：2^attempt 秒，最大30秒
+            # Exponential backoff: 2^attempt giây, tối đa 30 giây
             delay = min(2 ** attempt, 30)
         else:
-            # 使用预定义的延迟列表
+            # Sử dụng danh sách độ trễ được định nghĩa trước
             if attempt < len(self.retry_delays):
                 delay = self.retry_delays[attempt]
             else:
                 delay = self.retry_delays[-1]
         
-        # 添加一些随机性以避免同时重试
+        # Thêm một chút ngẫu nhiên để tránh thử lại đồng thời
         import random
         jitter = random.uniform(0, 0.3 * delay)
         
         return delay + jitter
     
     def get_stats(self) -> dict:
-        """获取重试统计信息"""
+        """Lấy thông tin thống kê thử lại"""
         return self.retry_stats.copy()
     
     def reset_stats(self):
-        """重置统计信息"""
+        """Đặt lại thông tin thống kê"""
         self.retry_stats = {
             'total_retries': 0,
             'successful_retries': 0,
@@ -207,7 +207,7 @@ def with_retry(
     exponential_backoff: bool = True
 ):
     """
-    装饰器：为异步函数添加重试机制
+    Decorator: Thêm cơ chế thử lại cho hàm bất đồng bộ
     
     Usage:
         @with_retry(max_retries=3)
@@ -232,11 +232,11 @@ def with_retry(
                         else:
                             delay = delays[attempt] if attempt < len(delays) else delays[-1]
                         
-                        logger.warning(f"函数 {func.__name__} 失败 (尝试 {attempt + 1}/{max_retries}): {e}")
-                        logger.info(f"将在 {delay} 秒后重试")
+                        logger.warning(f"Hàm {func.__name__} thất bại (thử {attempt + 1}/{max_retries}): {e}")
+                        logger.info(f"Sẽ thử lại sau {delay} giây")
                         await asyncio.sleep(delay)
                     else:
-                        logger.error(f"函数 {func.__name__} 重试 {max_retries} 次后仍然失败")
+                        logger.error(f"Hàm {func.__name__} vẫn thất bại sau {max_retries} lần thử lại")
             
             raise last_exception
         

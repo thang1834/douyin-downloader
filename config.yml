@@ -6,14 +6,14 @@
 # 4. Tham khảo thêm cú pháp YAML trên mạng
 #######################################
 
-
 # Liên kết chia sẻ của tác phẩm (video hoặc ảnh), livestream, bộ sưu tập, nhạc, trang cá nhân
 # (Xoá phần mô tả, chỉ giữ URL, phải bắt đầu bằng https://v.douyin.com/ hoặc https://www.douyin.com/)
 # Có thể đặt nhiều liên kết, đảm bảo ít nhất một link
 # Bắt buộc
 link:
   # Tải thử trang cá nhân (đã biết hoạt động)
-  - https://www.douyin.com/user/MS4wLjABAAAA6O7EZyfDRYXxJrUTpf91K3tmB4rBROkAw-nYMfld8ss
+  # - https://www.douyin.com/user/MS4wLjABAAAA6O7EZyfDRYXxJrUTpf91K3tmB4rBROkAw-nYMfld8ss
+  - https://www.douyin.com/collection/7307063973839374345
   # Tải thử video đơn
   # - https://v.douyin.com/iRGu2mBL/
   # -  https://v.douyin.com/kVefc81/
@@ -43,11 +43,9 @@ avatar: True
 # Tuỳ chọn
 json: True
 
-
 # Khoảng thời gian tải (để trống nghĩa là không giới hạn)
 start_time: ""
 end_time: ""
-
 
 folderstyle: True # True -> mỗi video một thư mục riêng; False -> tất cả dùng chung một thư mục
 # True
@@ -67,20 +65,19 @@ folderstyle: True # True -> mỗi video một thư mục riêng; False -> tất 
 # Khi link là trang cá nhân, đặt chế độ tải tác phẩm đã đăng (post), tác phẩm đã thích (like) hoặc toàn bộ bộ sưu tập (mix), mặc định post, có thể chọn nhiều chế độ
 # Tuỳ chọn
 mode:
-  - post
+  # - post
+  - mix
 
 # Tuỳ chỉnh số lượng tải
 # Tuỳ chọn
 number:
-  post: 1     # Số tác phẩm trang cá nhân, mặc định 0 là tải tất cả
-  like: 3     # Số tác phẩm đã thích, mặc định 0 là tải tất cả
-  allmix: 1   # Số bộ sưu tập, mặc định 0 là tải tất cả
-  mix: 3      # Số tác phẩm trong một bộ sưu tập, mặc định 0 là tải tất cả
-  music: 3    # Số tác phẩm theo nhạc (âm thanh gốc), mặc định 0 là tải tất cả
+  post: 0 # Số tác phẩm trang cá nhân, mặc định 0 là tải tất cả
+  like: 0 # Số tác phẩm đã thích, mặc định 0 là tải tất cả
+  allmix: 0 # Số bộ sưu tập, mặc định 0 là tải tất cả
+  mix: 0 # Số tác phẩm trong một bộ sưu tập, mặc định 0 là tải tất cả
+  music: 0 # Số tác phẩm theo nhạc (âm thanh gốc), mặc định 0 là tải tất cả
 
 database: True # Nếu không dùng cơ sở dữ liệu, tải bổ sung sẽ không khả dụng
-
-
 
 # Tải bổ sung: phạm vi tải là các tác phẩm mới từ Douyin so với tác phẩm mới nhất lưu trữ. Nếu chưa tải link nào thì tải toàn bộ
 # Có thể kết hợp với tuỳ chọn number
@@ -90,11 +87,11 @@ database: True # Nếu không dùng cơ sở dữ liệu, tải bổ sung sẽ k
 # Trường hợp 4: khi lấy tất cả bộ sưu tập trang cá nhân (chế độ mix) hơi đặc biệt, number(allmix) kiểm soát số bộ sưu tập, increase(allmix) tải bổ sung trong từng bộ
 # Tuỳ chọn
 increase:
-  post: False     # Bật tải bổ sung cho tác phẩm trang cá nhân (True/False), mặc định False
-  like: False     # Bật tải bổ sung cho tác phẩm đã thích (True/False), mặc định False
-  allmix: False   # Bật tải bổ sung cho bộ sưu tập trang cá nhân (True/False), mặc định False
-  mix: False      # Bật tải bổ sung cho tác phẩm trong một bộ sưu tập (True/False), mặc định False
-  music: False    # Bật tải bổ sung cho tác phẩm theo nhạc (True/False), mặc định False
+  post: False # Bật tải bổ sung cho tác phẩm trang cá nhân (True/False), mặc định False
+  like: False # Bật tải bổ sung cho tác phẩm đã thích (True/False), mặc định False
+  allmix: False # Bật tải bổ sung cho bộ sưu tập trang cá nhân (True/False), mặc định False
+  mix: False # Bật tải bổ sung cho tác phẩm trong một bộ sưu tập (True/False), mặc định False
+  music: False # Bật tải bổ sung cho tác phẩm theo nhạc (True/False), mặc định False
 
 # Số luồng, mặc định 5
 # Tuỳ chọn
@@ -116,7 +113,6 @@ cookies:
   odin_tt: a19f20351de5ed35a078f09115d098328b025656113ec0e35dfc4f7e1cf04dea5edd7d8176cf7070e0ff8f53414adeb8
   passport_csrf_token: c2a7091feddce96551be4436e03ca3f3
   sid_guard: 5e5adf6c506e880b1e0959afb5f6cb80%7C1739188609%7C5183984%7CFri%2C+11-Apr-2025+11%3A56%3A33+GMT
-
 # Cookie vui lòng đăng nhập Douyin web rồi xem trong F12
 # Chọn một trong cookies hoặc cookie, muốn dùng dạng này hãy bỏ chú thích ở phần cookies và các khoá phía trên
 # Đặt giá trị này sẽ tự động vô hiệu phần cookies ở trên, ưu tiên cao hơn

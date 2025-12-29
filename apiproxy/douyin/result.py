@@ -8,7 +8,7 @@ import copy
 
 class Result(object):
     def __init__(self):
-        # 作者信息
+        # Thông tin tác giả
         self.authorDict = {
             "avatar_thumb": {
                 "height": "",
@@ -28,35 +28,35 @@ class Result(object):
                 "url_list": [],
                 "width": ""
             },
-            # 喜欢的作品数
+            # Số tác phẩm đã thích
             "favoriting_count": "",
-            # 粉丝数
+            # Số người theo dõi
             "follower_count": "",
-            # 关注数
+            # Số người đang theo dõi
             "following_count": "",
-            # 昵称
+            # Biệt danh
             "nickname": "",
-            # 是否允许下载
+            # Có cho phép tải xuống không
             "prevent_download": "",
-            # 用户 url id
+            # ID URL người dùng
             "sec_uid": "",
-            # 是否私密账号
+            # Có phải tài khoản riêng tư không
             "secret": "",
-            # 短id
+            # ID ngắn
             "short_id": "",
-            # 签名
+            # Chữ ký
             "signature": "",
-            # 总获赞数
+            # Tổng số lượt thích
             "total_favorited": "",
-            # 用户id
+            # ID người dùng
             "uid": "",
-            # 用户自定义唯一id 抖音号
+            # ID duy nhất do người dùng tự định nghĩa, số Douyin
             "unique_id": "",
-            # 年龄
+            # Tuổi
             "user_age": "",
 
         }
-        # 图片信息
+        # Thông tin ảnh
         self.picDict = {
             "height": "",
             "mask_url_list": "",
@@ -64,7 +64,7 @@ class Result(object):
             "url_list": [],
             "width": ""
         }
-        # 音乐信息
+        # Thông tin nhạc
         self.musicDict = {
             "cover_hd": {
                 "height": "",
@@ -90,11 +90,11 @@ class Result(object):
                 "url_list": [],
                 "width": ""
             },
-            # 音乐作者抖音号
+            # Số Douyin của tác giả nhạc
             "owner_handle": "",
-            # 音乐作者id
+            # ID tác giả nhạc
             "owner_id": "",
-            # 音乐作者昵称
+            # Biệt danh tác giả nhạc
             "owner_nickname": "",
             "play_url": {
                 "height": "",
@@ -103,10 +103,10 @@ class Result(object):
                 "url_list": [],
                 "width": ""
             },
-            # 音乐名字
+            # Tên nhạc
             "title": "",
         }
-        # 视频信息
+        # Thông tin video
         self.videoDict = {
             "play_addr": {
                 "uri": "",
@@ -137,7 +137,7 @@ class Result(object):
                 "width": ""
             }
         }
-        # mix信息
+        # Thông tin bộ sưu tập
         self.mixInfo = {
             "cover_url": {
                 "height": "",
@@ -156,27 +156,27 @@ class Result(object):
                 "updated_to_episode": ""
             }
         }
-        # 作品信息
+        # Thông tin tác phẩm
         self.awemeDict = {
-            # 作品创建时间
+            # Thời gian tạo tác phẩm
             "create_time": "",
-            # awemeType=0 视频, awemeType=1 图集, awemeType=2 直播
+            # awemeType=0 Video, awemeType=1 Bộ sưu tập ảnh, awemeType=2 Livestream
             "awemeType": "",
-            # 作品 id
+            # ID tác phẩm
             "aweme_id": "",
-            # 作者信息
+            # Thông tin tác giả
             "author": self.authorDict,
-            # 作品描述
+            # Mô tả tác phẩm
             "desc": "",
-            # 图片
+            # Ảnh
             "images": [],
-            # 音乐
+            # Nhạc
             "music": self.musicDict,
-            # 合集
+            # Bộ sưu tập
             "mix_info": self.mixInfo,
-            # 视频
+            # Video
             "video": self.videoDict,
-            # 作品信息统计
+            # Thống kê thông tin tác phẩm
             "statistics": {
                 "admire_count": "",
                 "collect_count": "",
@@ -186,68 +186,68 @@ class Result(object):
                 "share_count": ""
             }
         }
-        # 用户作品信息
+        # Thông tin tác phẩm người dùng
         self.awemeList = []
-        # 直播信息
+        # Thông tin livestream
         self.liveDict = {
-            # awemeType=0 视频, awemeType=1 图集, awemeType=2 直播
+            # awemeType=0 Video, awemeType=1 Bộ sưu tập ảnh, awemeType=2 Livestream
             "awemeType": "",
-            # 是否在播
+            # Có đang phát sóng không
             "status": "",
-            # 直播标题
+            # Tiêu đề livestream
             "title": "",
-            # 直播cover
+            # Ảnh bìa livestream
             "cover": "",
-            # 头像
+            # Avatar
             "avatar": "",
-            # 观看人数
+            # Số người xem
             "user_count": "",
-            # 昵称
+            # Biệt danh
             "nickname": "",
             # sec_uid
             "sec_uid": "",
-            # 直播间观看状态
+            # Trạng thái xem livestream
             "display_long": "",
-            # 推流
+            # Stream
             "flv_pull_url": "",
-            # 分区
+            # Khu vực
             "partition": "",
             "sub_partition": "",
-            # 最清晰的地址
+            # Địa chỉ rõ nét nhất
             "flv_pull_url0": "",
         }
 
 
 
-    # 将得到的json数据（dataRaw）精简成自己定义的数据（dataNew）
-    # 转换得到的数据
+    # Chuyển đổi dữ liệu json nhận được (dataRaw) thành dữ liệu tự định nghĩa (dataNew)
+    # Chuyển đổi dữ liệu nhận được
     def dataConvert(self, awemeType, dataNew, dataRaw):
         for item in dataNew:
             try:
-                # 作品创建时间
+                # Thời gian tạo tác phẩm
                 if item == "create_time":
                     dataNew['create_time'] = time.strftime(
                         "%Y-%m-%d %H.%M.%S", time.localtime(dataRaw['create_time']))
                     continue
-                # 设置 awemeType
+                # Thiết lập awemeType
                 if item == "awemeType":
                     dataNew["awemeType"] = awemeType
                     continue
-                # 当 解析的链接 是图片时
+                # Khi liên kết được phân tích là ảnh
                 if item == "images":
                     if awemeType == 1:
                         for image in dataRaw[item]:
                             for i in image:
                                 self.picDict[i] = image[i]
-                            # 字典要深拷贝
+                            # Dictionary cần sao chép sâu
                             self.awemeDict["images"].append(copy.deepcopy(self.picDict))
                     continue
-                # 当 解析的链接 是视频时
+                # Khi liên kết được phân tích là video
                 if item == "video":
                     if awemeType == 0:
                         self.dataConvert(awemeType, dataNew[item], dataRaw[item])
                     continue
-                # 将小头像放大
+                # Phóng to avatar nhỏ
                 if item == "avatar":
                     for i in dataNew[item]:
                         if i == "url_list":
@@ -260,34 +260,34 @@ class Result(object):
                             dataNew[item][i] = self.awemeDict["author"]["avatar_thumb"][i]
                     continue
 
-                # 原来的json是[{}] 而我们的是 {}
+                # JSON gốc là [{}] còn của chúng ta là {}
                 if item == "cover_url":
                     self.dataConvert(awemeType, dataNew[item], dataRaw[item][0])
                     continue
 
-                # 根据 uri 获取 1080p 视频
+                # Lấy video 1080p theo uri
                 if item == "play_addr":
                     dataNew[item]["uri"] = dataRaw["bit_rate"][0]["play_addr"]["uri"]
-                    # 使用 这个api 可以获得1080p
+                    # Sử dụng API này có thể lấy được 1080p
                     # dataNew[item]["url_list"] = "https://aweme.snssdk.com/aweme/v1/play/?video_id=%s&ratio=1080p&line=0" \
                     #                             % dataNew[item]["uri"]
                     dataNew[item]["url_list"] = copy.deepcopy(dataRaw["bit_rate"][0]["play_addr"]["url_list"])
                     continue
 
-                # 常规 递归遍历 字典
+                # Duyệt đệ quy dictionary thông thường
                 if isinstance(dataNew[item], dict):
                     self.dataConvert(awemeType, dataNew[item], dataRaw[item])
                 else:
-                    # 赋值
+                    # Gán giá trị
                     dataNew[item] = dataRaw[item]
             except Exception as e:
-                # 删除这个警告, 总是让人误会出错了
-                # print("[  警告  ]:转换数据时在接口中未找到 %s\r" % (item))
+                # Xóa cảnh báo này, luôn khiến người ta hiểu nhầm là có lỗi
+                # print("[  Cảnh báo  ]:Không tìm thấy %s trong interface khi chuyển đổi dữ liệu\r" % (item))
                 pass
 
     def clearDict(self, data):
         for item in data:
-            # 常规 递归遍历 字典
+            # Duyệt đệ quy dictionary thông thường
             if isinstance(data[item], dict):
                 self.clearDict(data[item])
             elif isinstance(data[item], list):

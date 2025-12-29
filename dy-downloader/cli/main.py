@@ -30,15 +30,15 @@ async def download_url(url: str, config: ConfigLoader, cookie_manager: CookieMan
             if resolved_url:
                 url = resolved_url
             else:
-                display.print_error(f"Failed to resolve short URL: {url}")
+                display.print_error(f"Không thể phân giải URL rút gọn: {url}")
                 return None
 
         parsed = URLParser.parse(url)
         if not parsed:
-            display.print_error(f"Failed to parse URL: {url}")
+            display.print_error(f"Không thể phân tích URL: {url}")
             return None
 
-        display.print_info(f"URL type: {parsed['type']}")
+        display.print_info(f"Loại URL: {parsed['type']}")
 
         downloader = DownloaderFactory.create(
             parsed['type'],
@@ -53,7 +53,7 @@ async def download_url(url: str, config: ConfigLoader, cookie_manager: CookieMan
         )
 
         if not downloader:
-            display.print_error(f"No downloader found for type: {parsed['type']}")
+            display.print_error(f"Không tìm thấy trình tải xuống cho loại: {parsed['type']}")
             return None
 
         result = await downloader.download(parsed)
@@ -79,7 +79,7 @@ async def main_async(args):
         config_path = 'config.yml'
 
     if not Path(config_path).exists():
-        display.print_error(f"Config file not found: {config_path}")
+        display.print_error(f"Không tìm thấy file cấu hình: {config_path}")
         return
 
     config = ConfigLoader(config_path)
@@ -97,7 +97,7 @@ async def main_async(args):
         config.update(thread=args.thread)
 
     if not config.validate():
-        display.print_error("Invalid configuration: missing required fields")
+        display.print_error("Cấu hình không hợp lệ: thiếu các trường bắt buộc")
         return
 
     cookies = config.get_cookies()
@@ -105,21 +105,21 @@ async def main_async(args):
     cookie_manager.set_cookies(cookies)
 
     if not cookie_manager.validate_cookies():
-        display.print_warning("Cookies may be invalid or incomplete")
+        display.print_warning("Cookies có thể không hợp lệ hoặc không đầy đủ")
 
     database = None
     if config.get('database'):
         database = Database()
         await database.initialize()
-        display.print_success("Database initialized")
+        display.print_success("Cơ sở dữ liệu đã khởi tạo")
 
     urls = config.get_links()
-    display.print_info(f"Found {len(urls)} URL(s) to process")
+    display.print_info(f"Tìm thấy {len(urls)} URL để xử lý")
 
     all_results = []
 
     for i, url in enumerate(urls, 1):
-        display.print_info(f"Processing [{i}/{len(urls)}]: {url}")
+        display.print_info(f"Đang xử lý [{i}/{len(urls)}]: {url}")
 
         result = await download_url(url, config, cookie_manager, database)
         if result:
@@ -135,16 +135,16 @@ async def main_async(args):
             total_result.failed += r.failed
             total_result.skipped += r.skipped
 
-        display.print_success("\n=== Overall Summary ===")
+        display.print_success("\n=== Tóm tắt tổng thể ===")
         display.show_result(total_result)
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Douyin Downloader - 抖音批量下载工具')
-    parser.add_argument('-u', '--url', action='append', help='Download URL(s)')
-    parser.add_argument('-c', '--config', help='Config file path (default: config.yml)')
-    parser.add_argument('-p', '--path', help='Save path')
-    parser.add_argument('-t', '--thread', type=int, help='Thread count')
+    parser = argparse.ArgumentParser(description='Douyin Downloader - Công cụ tải xuống hàng loạt Douyin')
+    parser.add_argument('-u', '--url', action='append', help='URL tải xuống')
+    parser.add_argument('-c', '--config', help='Đường dẫn file cấu hình (mặc định: config.yml)')
+    parser.add_argument('-p', '--path', help='Đường dẫn lưu')
+    parser.add_argument('-t', '--thread', type=int, help='Số luồng')
     parser.add_argument('--version', action='version', version='1.0.0')
 
     args = parser.parse_args()
@@ -152,11 +152,11 @@ def main():
     try:
         asyncio.run(main_async(args))
     except KeyboardInterrupt:
-        display.print_warning("\nDownload interrupted by user")
+        display.print_warning("\nNgười dùng đã hủy tải xuống")
         sys.exit(0)
     except Exception as e:
-        display.print_error(f"Fatal error: {e}")
-        logger.exception("Fatal error occurred")
+        display.print_error(f"Lỗi nghiêm trọng: {e}")
+        logger.exception("Đã xảy ra lỗi nghiêm trọng")
         sys.exit(1)
 
 

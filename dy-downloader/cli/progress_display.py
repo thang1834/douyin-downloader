@@ -14,7 +14,7 @@ class ProgressDisplay:
         banner = """
 ╔══════════════════════════════════════════╗
 ║     Douyin Downloader v1.0.0            ║
-║     抖音批量下载工具                     ║
+║     Công cụ tải xuống hàng loạt Douyin  ║
 ╚══════════════════════════════════════════╝
         """
         self.console.print(banner, style="bold cyan")
@@ -30,18 +30,18 @@ class ProgressDisplay:
         )
 
     def show_result(self, result):
-        table = Table(title="Download Summary", show_header=True, header_style="bold magenta")
-        table.add_column("Metric", style="cyan")
-        table.add_column("Count", justify="right", style="green")
+        table = Table(title="Tóm tắt tải xuống", show_header=True, header_style="bold magenta")
+        table.add_column("Chỉ số", style="cyan")
+        table.add_column("Số lượng", justify="right", style="green")
 
-        table.add_row("Total", str(result.total))
-        table.add_row("Success", str(result.success))
-        table.add_row("Failed", str(result.failed))
-        table.add_row("Skipped", str(result.skipped))
+        table.add_row("Tổng", str(result.total))
+        table.add_row("Thành công", str(result.success))
+        table.add_row("Thất bại", str(result.failed))
+        table.add_row("Bỏ qua", str(result.skipped))
 
         if result.total > 0:
             success_rate = (result.success / result.total) * 100
-            table.add_row("Success Rate", f"{success_rate:.1f}%")
+            table.add_row("Tỷ lệ thành công", f"{success_rate:.1f}%")
 
         self.console.print(table)
 

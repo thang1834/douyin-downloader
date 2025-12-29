@@ -20,9 +20,9 @@ class Utils(object):
 
     def replaceStr(self, filenamestr: str):
         """
-        替换非法字符，缩短字符长度，使其能成为文件名
+        Thay thế ký tự không hợp lệ, rút ngắn độ dài chuỗi, để có thể trở thành tên file
         """
-        # 匹配 汉字 字母 数字 空格
+        # Khớp chữ Hán, chữ cái, số, khoảng trắng
         match = "([0-9A-Za-z\u4e00-\u9fa5]+)"
 
         result = re.findall(match, filenamestr)
@@ -30,11 +30,11 @@ class Utils(object):
         result = "".join(result).strip()
         if len(result) > 20:
             result = result[:20]
-        # 去除前后空格
+        # Loại bỏ khoảng trắng trước và sau
         return result
 
     def resource_path(self, relative_path):
-        if getattr(sys, 'frozen', False):  # 是否Bundle Resource
+        if getattr(sys, 'frozen', False):  # Có phải Bundle Resource không
             base_path = sys._MEIPASS
         else:
             base_path = os.path.dirname(os.path.abspath(__file__))
@@ -52,7 +52,7 @@ class Utils(object):
 
     def generate_random_str(self, randomlength=16):
         """
-        根据传入长度产生随机字符串
+        Tạo chuỗi ngẫu nhiên dựa trên độ dài truyền vào
         """
         random_str = ''
         base_str = 'ABCDEFGHIGKLMNOPQRSTUVWXYZabcdefghigklmnopqrstuvwxyz0123456789='
@@ -128,15 +128,15 @@ class Utils(object):
         canvas = 1489154074
 
         arr1 = [
-            64,  # 固定
-            0,  # 固定
-            1,  # 固定
-            14,  # 固定 这个还要再看一下，14,12,0都出现过
-            salt_payload[14],  # payload 相关
+            64,  # Cố định
+            0,  # Cố định
+            1,  # Cố định
+            14,  # Cố định - cần xem lại, đã xuất hiện 14, 12, 0
+            salt_payload[14],  # Liên quan đến payload
             salt_payload[15],
-            salt_form[14],  # form 相关
+            salt_form[14],  # Liên quan đến form
             salt_form[15],
-            salt_ua[14],  # ua 相关
+            salt_ua[14],  # Liên quan đến ua
             salt_ua[15],
             (timestamp >> 24) & 255,
             (timestamp >> 16) & 255,
@@ -146,7 +146,7 @@ class Utils(object):
             (canvas >> 16) & 255,
             (canvas >> 8) & 255,
             (canvas >> 0) & 255,
-            64,  # 校验位
+            64,  # Bit kiểm tra
         ]
 
         for i in range(1, len(arr1) - 1):

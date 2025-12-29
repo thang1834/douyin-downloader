@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 """
-下载编排器
-协调多种下载策略，实现智能降级和任务管理
+Bộ điều phối tải xuống
+Điều phối nhiều chiến lược tải xuống, thực hiện giảm cấp thông minh và quản lý nhiệm vụ
 """
 
 import asyncio
@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 class OrchestratorConfig:
-    """编排器配置"""
+    """Cấu hình bộ điều phối"""
     def __init__(
         self,
         max_concurrent: int = 5,
@@ -48,31 +48,31 @@ class OrchestratorConfig:
 
 
 class DownloadOrchestrator:
-    """下载任务编排器"""
+    """Bộ điều phối nhiệm vụ tải xuống"""
     
     def __init__(self, config: Optional[OrchestratorConfig] = None):
         """
-        初始化编排器
+        Khởi tạo bộ điều phối
         
         Args:
-            config: 编排器配置
+            config: Cấu hình bộ điều phối
         """
         self.config = config or OrchestratorConfig()
         self.strategies: List[IDownloadStrategy] = []
         self.rate_limiter = AdaptiveRateLimiter(self.config.rate_limit_config) if self.config.enable_rate_limit else None
         
-        # 任务队列
+        # Hàng đợi nhiệm vụ
         self.pending_queue = asyncio.Queue()
         self.priority_tasks: List[DownloadTask] = []
         self.active_tasks: Dict[str, DownloadTask] = {}
         self.completed_tasks: List[DownloadTask] = []
         self.failed_tasks: List[DownloadTask] = []
         
-        # 工作线程
+        # Worker threads
         self.workers: List[asyncio.Task] = []
         self.running = False
         
-        # 统计信息
+        # Thông tin thống kê
         self.stats = {
             'total_tasks': 0,
             'completed_tasks': 0,
@@ -82,15 +82,15 @@ class DownloadOrchestrator:
             'success_rate': 0.0
         }
         
-        # 初始化默认策略
+        # Khởi tạo chiến lược mặc định
         self._init_default_strategies()
     
     def _init_default_strategies(self):
-        """初始化默认策略"""
-        # API策略
+        """Khởi tạo chiến lược mặc định"""
+        # Chiến lược API
         api_strategy = EnhancedAPIStrategy()
         
-        # 如果启用重试，包装策略
+        # Nếu bật thử lại, bọc chiến lược
         if self.config.enable_retry:
             api_strategy = RetryStrategy(api_strategy)
         
@@ -98,33 +98,33 @@ class DownloadOrchestrator:
     
     def register_strategy(self, strategy: IDownloadStrategy):
         """
-        注册下载策略
+        Đăng ký chiến lược tải xuống
         
         Args:
-            strategy: 下载策略实例
+            strategy: Instance chiến lược tải xuống
         """
         self.strategies.append(strategy)
-        # 按优先级排序
+        # Sắp xếp theo ưu tiên
         self.strategies.sort(key=lambda s: s.get_priority(), reverse=True)
-        logger.info(f"注册策略: {strategy.name} (优先级: {strategy.get_priority()})")
+        logger.info(f"Đăng ký chiến lược: {strategy.name} (ưu tiên: {strategy.get_priority()})")
     
     async def add_task(self, url: str, task_type: Optional[TaskType] = None, priority: int = 0) -> str:
         """
-        添加下载任务
+        Thêm nhiệm vụ tải xuống
         
         Args:
-            url: 下载URL
-            task_type: 任务类型
-            priority: 优先级（数值越大优先级越高）
+            url: URL tải xuống
+            task_type: Loại nhiệm vụ
+            priority: Ưu tiên (số càng lớn ưu tiên càng cao)
         
         Returns:
-            任务ID
+            ID nhiệm vụ
         """
-        # 自动识别任务类型
+        # Tự động nhận diện loại nhiệm vụ
         if task_type is None:
             task_type = self._detect_task_type(url)
         
-        # 创建任务
+        # Tạo nhiệm vụ
         task = DownloadTask(
             task_id=str(uuid.uuid4()),
             url=url,
@@ -132,7 +132,7 @@ class DownloadOrchestrator:
             priority=priority
         )
         
-        # 添加到队列
+        # Thêm vào hàng đợi
         if self.config.priority_queue and priority > 0:
             self.priority_tasks.append(task)
             self.priority_tasks.sort(key=lambda t: t.priority, reverse=True)
@@ -140,24 +140,24 @@ class DownloadOrchestrator:
             await self.pending_queue.put(task)
         
         self.stats['total_tasks'] += 1
-        logger.info(f"添加任务: {task.task_id} ({task_type.value}) 优先级: {priority}")
+        logger.info(f"Thêm nhiệm vụ: {task.task_id} ({task_type.value}) ưu tiên: {priority}")
         
         return task.task_id
     
     async def add_batch(self, urls: List[str], task_type: Optional[TaskType] = None) -> List[str]:
         """
-        批量添加任务
+        Thêm nhiệm vụ hàng loạt
         
         Args:
-            urls: URL列表
-            task_type: 任务类型
+            urls: Danh sách URL
+            task_type: Loại nhiệm vụ
         
         Returns:
-            任务ID列表
+            Danh sách ID nhiệm vụ
         """
         task_ids = []
         for i, url in enumerate(urls):
-            # 批量任务使用递减优先级
+            # Nhiệm vụ hàng loạt sử dụng ưu tiên giảm dần
             priority = len(urls) - i
             task_id = await self.add_task(url, task_type, priority)
             task_ids.append(task_id)
@@ -165,131 +165,131 @@ class DownloadOrchestrator:
         return task_ids
     
     async def start(self):
-        """启动编排器"""
+        """Khởi động bộ điều phối"""
         if self.running:
-            logger.warning("编排器已在运行")
+            logger.warning("Bộ điều phối đang chạy")
             return
         
         self.running = True
-        logger.info(f"启动编排器，最大并发数: {self.config.max_concurrent}")
+        logger.info(f"Khởi động bộ điều phối, số đồng thời tối đa: {self.config.max_concurrent}")
         
-        # 创建工作线程
+        # Tạo worker threads
         for i in range(self.config.max_concurrent):
             worker = asyncio.create_task(self._worker(i))
             self.workers.append(worker)
     
     async def stop(self):
-        """停止编排器"""
+        """Dừng bộ điều phối"""
         if not self.running:
             return
         
-        logger.info("停止编排器...")
+        logger.info("Đang dừng bộ điều phối...")
         self.running = False
         
-        # 取消所有工作线程
+        # Hủy tất cả worker threads
         for worker in self.workers:
             worker.cancel()
         
-        # 等待工作线程结束
+        # Chờ worker threads kết thúc
         await asyncio.gather(*self.workers, return_exceptions=True)
         self.workers.clear()
         
-        logger.info("编排器已停止")
+        logger.info("Bộ điều phối đã dừng")
     
     async def wait_completion(self, timeout: Optional[float] = None):
         """
-        等待所有任务完成
+        Chờ tất cả nhiệm vụ hoàn thành
         
         Args:
-            timeout: 超时时间（秒）
+            timeout: Thời gian chờ (giây)
         """
         start_time = time.time()
         
         while self.running:
-            # 检查是否所有任务都完成
+            # Kiểm tra xem tất cả nhiệm vụ đã hoàn thành chưa
             if (self.pending_queue.empty() and 
                 not self.priority_tasks and 
                 not self.active_tasks):
-                logger.info("所有任务已完成")
+                logger.info("Tất cả nhiệm vụ đã hoàn thành")
                 break
             
-            # 检查超时
+            # Kiểm tra timeout
             if timeout and (time.time() - start_time) > timeout:
-                logger.warning(f"等待超时 ({timeout} 秒)")
+                logger.warning(f"Chờ quá thời gian ({timeout} giây)")
                 break
             
             await asyncio.sleep(1)
         
-        # 计算统计信息
+        # Tính toán thông tin thống kê
         self._calculate_stats()
     
     async def _worker(self, worker_id: int):
         """
-        工作线程
+        Worker thread
         
         Args:
-            worker_id: 工作线程ID
+            worker_id: ID worker thread
         """
-        logger.info(f"工作线程 {worker_id} 启动")
+        logger.info(f"Worker thread {worker_id} khởi động")
         
         while self.running:
             try:
-                # 获取任务
+                # Lấy nhiệm vụ
                 task = await self._get_next_task()
                 if task is None:
                     await asyncio.sleep(0.1)
                     continue
                 
-                # 标记为活动任务
+                # Đánh dấu là nhiệm vụ đang hoạt động
                 self.active_tasks[task.task_id] = task
                 
-                # 限速控制
+                # Kiểm soát giới hạn tốc độ
                 if self.rate_limiter:
                     await self.rate_limiter.acquire()
                 
-                # 执行任务
-                logger.info(f"工作线程 {worker_id} 开始处理任务: {task.task_id}")
+                # Thực thi nhiệm vụ
+                logger.info(f"Worker thread {worker_id} bắt đầu xử lý nhiệm vụ: {task.task_id}")
                 result = await self._execute_task(task)
                 
-                # 移除活动任务
+                # Xóa nhiệm vụ đang hoạt động
                 del self.active_tasks[task.task_id]
                 
-                # 处理结果
+                # Xử lý kết quả
                 if result.success:
                     self.completed_tasks.append(task)
                     self.stats['completed_tasks'] += 1
-                    logger.info(f"任务 {task.task_id} 完成")
+                    logger.info(f"Nhiệm vụ {task.task_id} hoàn thành")
                 else:
-                    # 检查是否需要重试
+                    # Kiểm tra xem có cần thử lại không
                     if task.increment_retry():
-                        logger.warning(f"任务 {task.task_id} 失败，准备重试 ({task.retry_count}/{task.max_retries})")
+                        logger.warning(f"Nhiệm vụ {task.task_id} thất bại, chuẩn bị thử lại ({task.retry_count}/{task.max_retries})")
                         await self.pending_queue.put(task)
                         self.stats['retried_tasks'] += 1
                     else:
                         self.failed_tasks.append(task)
                         self.stats['failed_tasks'] += 1
-                        logger.error(f"任务 {task.task_id} 最终失败: {result.error_message}")
+                        logger.error(f"Nhiệm vụ {task.task_id} cuối cùng thất bại: {result.error_message}")
                 
-                # 保存进度
+                # Lưu tiến độ
                 if self.config.save_progress:
                     await self._save_progress()
                 
             except asyncio.CancelledError:
-                logger.info(f"工作线程 {worker_id} 被取消")
+                logger.info(f"Worker thread {worker_id} bị hủy")
                 break
             except Exception as e:
-                logger.error(f"工作线程 {worker_id} 异常: {e}")
+                logger.error(f"Worker thread {worker_id} lỗi: {e}")
                 await asyncio.sleep(1)
         
-        logger.info(f"工作线程 {worker_id} 结束")
+        logger.info(f"Worker thread {worker_id} kết thúc")
     
     async def _get_next_task(self) -> Optional[DownloadTask]:
-        """获取下一个任务"""
-        # 优先处理高优先级任务
+        """Lấy nhiệm vụ tiếp theo"""
+        # Ưu tiên xử lý nhiệm vụ có ưu tiên cao
         if self.priority_tasks:
             return self.priority_tasks.pop(0)
         
-        # 从普通队列获取
+        # Lấy từ hàng đợi thông thường
         try:
             return await asyncio.wait_for(
                 self.pending_queue.get(),
@@ -300,54 +300,54 @@ class DownloadOrchestrator:
     
     async def _execute_task(self, task: DownloadTask) -> DownloadResult:
         """
-        执行任务，尝试所有策略
+        Thực thi nhiệm vụ, thử tất cả các chiến lược
         
         Args:
-            task: 下载任务
+            task: Nhiệm vụ tải xuống
         
         Returns:
-            下载结果
+            Kết quả tải xuống
         """
         last_error = None
         
         for strategy in self.strategies:
             try:
-                # 检查策略是否能处理任务
+                # Kiểm tra xem chiến lược có thể xử lý nhiệm vụ không
                 if not await strategy.can_handle(task):
                     continue
                 
-                logger.info(f"使用策略 {strategy.name} 处理任务 {task.task_id}")
+                logger.info(f"Sử dụng chiến lược {strategy.name} xử lý nhiệm vụ {task.task_id}")
                 
-                # 执行下载
+                # Thực thi tải xuống
                 result = await strategy.download(task)
                 
                 if result.success:
                     return result
                 
                 last_error = result.error_message
-                logger.warning(f"策略 {strategy.name} 失败: {last_error}")
+                logger.warning(f"Chiến lược {strategy.name} thất bại: {last_error}")
                 
             except Exception as e:
                 last_error = str(e)
-                logger.error(f"策略 {strategy.name} 异常: {e}")
+                logger.error(f"Chiến lược {strategy.name} lỗi: {e}")
         
-        # 所有策略都失败
+        # Tất cả chiến lược đều thất bại
         return DownloadResult(
             success=False,
             task_id=task.task_id,
-            error_message=f"所有策略都失败: {last_error}",
+            error_message=f"Tất cả chiến lược đều thất bại: {last_error}",
             retry_count=task.retry_count
         )
     
     def _detect_task_type(self, url: str) -> TaskType:
         """
-        自动检测任务类型
+        Tự động phát hiện loại nhiệm vụ
         
         Args:
             url: URL
         
         Returns:
-            任务类型
+            Loại nhiệm vụ
         """
         url_lower = url.lower()
         
@@ -362,15 +362,15 @@ class DownloadOrchestrator:
         elif 'live.douyin.com' in url_lower:
             return TaskType.LIVE
         else:
-            return TaskType.VIDEO  # 默认为视频
+            return TaskType.VIDEO  # Mặc định là video
     
     def _calculate_stats(self):
-        """计算统计信息"""
+        """Tính toán thông tin thống kê"""
         total = self.stats['total_tasks']
         if total > 0:
             self.stats['success_rate'] = self.stats['completed_tasks'] / total * 100
         
-        # 计算平均时长
+        # Tính toán thời lượng trung bình
         durations = []
         for task in self.completed_tasks:
             if hasattr(task, 'duration'):
@@ -380,40 +380,40 @@ class DownloadOrchestrator:
             self.stats['average_duration'] = sum(durations) / len(durations)
     
     async def _save_progress(self):
-        """保存进度（可扩展为持久化到文件或数据库）"""
-        # TODO: 实现进度保存逻辑
+        """Lưu tiến độ (có thể mở rộng để lưu vào file hoặc database)"""
+        # TODO: Triển khai logic lưu tiến độ
         pass
     
     def get_stats(self) -> Dict[str, Any]:
-        """获取统计信息"""
+        """Lấy thông tin thống kê"""
         self._calculate_stats()
         return self.stats.copy()
     
     def get_task_status(self, task_id: str) -> Optional[TaskStatus]:
         """
-        获取任务状态
+        Lấy trạng thái nhiệm vụ
         
         Args:
-            task_id: 任务ID
+            task_id: ID nhiệm vụ
         
         Returns:
-            任务状态
+            Trạng thái nhiệm vụ
         """
-        # 检查活动任务
+        # Kiểm tra nhiệm vụ đang hoạt động
         if task_id in self.active_tasks:
             return self.active_tasks[task_id].status
         
-        # 检查完成任务
+        # Kiểm tra nhiệm vụ đã hoàn thành
         for task in self.completed_tasks:
             if task.task_id == task_id:
                 return TaskStatus.COMPLETED
         
-        # 检查失败任务
+        # Kiểm tra nhiệm vụ thất bại
         for task in self.failed_tasks:
             if task.task_id == task_id:
                 return TaskStatus.FAILED
         
-        # 检查待处理任务
+        # Kiểm tra nhiệm vụ đang chờ
         for task in self.priority_tasks:
             if task.task_id == task_id:
                 return TaskStatus.PENDING

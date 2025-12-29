@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-下载策略基础类和接口定义
+Lớp cơ sở và định nghĩa interface cho chiến lược tải xuống
 """
 
 from abc import ABC, abstractmethod
@@ -13,7 +13,7 @@ import time
 
 
 class TaskType(Enum):
-    """任务类型枚举"""
+    """Enum loại nhiệm vụ"""
     VIDEO = "video"
     IMAGE = "image"
     MUSIC = "music"
@@ -23,7 +23,7 @@ class TaskType(Enum):
 
 
 class TaskStatus(Enum):
-    """任务状态枚举"""
+    """Enum trạng thái nhiệm vụ"""
     PENDING = "pending"
     PROCESSING = "processing"
     COMPLETED = "completed"
@@ -33,7 +33,7 @@ class TaskStatus(Enum):
 
 @dataclass
 class DownloadTask:
-    """下载任务数据类"""
+    """Lớp dữ liệu nhiệm vụ tải xuống"""
     task_id: str
     url: str
     task_type: TaskType
@@ -47,13 +47,13 @@ class DownloadTask:
     error_message: Optional[str] = None
     
     def increment_retry(self) -> bool:
-        """增加重试次数，返回是否还能重试"""
+        """Tăng số lần thử lại, trả về xem còn có thể thử lại không"""
         self.retry_count += 1
         self.updated_at = time.time()
         return self.retry_count < self.max_retries
     
     def to_dict(self) -> Dict:
-        """转换为字典"""
+        """Chuyển đổi sang dictionary"""
         return {
             'task_id': self.task_id,
             'url': self.url,
@@ -71,7 +71,7 @@ class DownloadTask:
 
 @dataclass
 class DownloadResult:
-    """下载结果数据类"""
+    """Lớp dữ liệu kết quả tải xuống"""
     success: bool
     task_id: str
     file_paths: List[str] = field(default_factory=list)
@@ -81,7 +81,7 @@ class DownloadResult:
     retry_count: int = 0
     
     def to_dict(self) -> Dict:
-        """转换为字典"""
+        """Chuyển đổi sang dictionary"""
         return {
             'success': self.success,
             'task_id': self.task_id,
@@ -94,27 +94,27 @@ class DownloadResult:
 
 
 class IDownloadStrategy(ABC):
-    """下载策略抽象基类"""
+    """Lớp cơ sở trừu tượng cho chiến lược tải xuống"""
     
     @abstractmethod
     async def can_handle(self, task: DownloadTask) -> bool:
-        """判断是否可以处理该任务"""
+        """Đánh giá xem có thể xử lý nhiệm vụ này không"""
         pass
     
     @abstractmethod
     async def download(self, task: DownloadTask) -> DownloadResult:
-        """执行下载任务"""
+        """Thực hiện nhiệm vụ tải xuống"""
         pass
     
     @abstractmethod
     def get_priority(self) -> int:
-        """获取策略优先级，数值越大优先级越高"""
+        """Lấy độ ưu tiên của chiến lược, giá trị càng lớn độ ưu tiên càng cao"""
         pass
     
     @property
     @abstractmethod
     def name(self) -> str:
-        """策略名称"""
+        """Tên chiến lược"""
         pass
     
     def __str__(self) -> str:

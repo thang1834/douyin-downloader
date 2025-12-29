@@ -4,7 +4,7 @@ from logging.handlers import RotatingFileHandler
 import os
 
 def setup_logger(name, log_file, level=logging.INFO):
-    """配置日志系统"""
+    """Cấu hình hệ thống logging"""
     log_path = Path(log_file).parent
     log_path.mkdir(exist_ok=True)
     
@@ -29,5 +29,5 @@ def setup_logger(name, log_file, level=logging.INFO):
     
     return logger
 
-# 创建全局logger实例
+# Tạo instance logger toàn cục
 logger = setup_logger("douyin_downloader", "logs/douyin_downloader.log") 

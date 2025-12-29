@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 """
-队列管理器
-支持任务持久化和断点恢复
+Quản lý hàng đợi
+Hỗ trợ lưu trữ nhiệm vụ và khôi phục điểm dừng
 """
 
 import asyncio
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 class PersistentQueue:
-    """持久化队列管理器"""
+    """Quản lý hàng đợi lưu trữ"""
     
     def __init__(
         self,
@@ -32,12 +32,12 @@ class PersistentQueue:
         checkpoint_interval: int = 60
     ):
         """
-        初始化队列管理器
+        Khởi tạo quản lý hàng đợi
         
         Args:
-            db_path: 数据库文件路径
-            max_size: 队列最大容量
-            checkpoint_interval: 检查点保存间隔（秒）
+            db_path: Đường dẫn file database
+            max_size: Dung lượng tối đa hàng đợi
+            checkpoint_interval: Khoảng thời gian lưu checkpoint (giây)
         """
         self.db_path = Path(db_path)
         self.max_size = max_size
@@ -48,18 +48,18 @@ class PersistentQueue:
         self._checkpoint_task = None
         self._lock = asyncio.Lock()
         
-        # 初始化数据库
+        # Khởi tạo database
         self._init_database()
         
-        # 恢复未完成的任务
+        # Khôi phục các nhiệm vụ chưa hoàn thành
         self._restore_tasks()
     
     def _init_database(self):
-        """初始化数据库"""
+        """Khởi tạo database"""
         self.conn = sqlite3.connect(str(self.db_path), check_same_thread=False)
         cursor = self.conn.cursor()
         
-        # 创建任务表
+        # Tạo bảng nhiệm vụ
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS tasks (
                 task_id TEXT PRIMARY KEY,
@@ -78,12 +78,12 @@ class PersistentQueue:
             )
         ''')
         
-        # 创建索引
+        # Tạo index
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_status ON tasks(status)')
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_priority ON tasks(priority DESC)')
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_created_at ON tasks(created_at)')
         
-        # 创建进度表
+        # Tạo bảng tiến độ
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS progress (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -99,20 +99,20 @@ class PersistentQueue:
         ''')
         
         self.conn.commit()
-        logger.info(f"数据库初始化完成: {self.db_path}")
+        logger.info(f"Khởi tạo database hoàn tất: {self.db_path}")
     
     def _restore_tasks(self):
-        """从数据库恢复未完成的任务"""
+        """Khôi phục các nhiệm vụ chưa hoàn thành từ database"""
         cursor = self.conn.cursor()
         
-        # 将所有PROCESSING状态的任务重置为PENDING
+        # Đặt lại tất cả nhiệm vụ có trạng thái PROCESSING thành PENDING
         cursor.execute('''
             UPDATE tasks 
             SET status = ?, updated_at = ?
             WHERE status = ?
         ''', (TaskStatus.PENDING.value, time.time(), TaskStatus.PROCESSING.value))
         
-        # 获取所有待处理的任务
+        # Lấy tất cả nhiệm vụ đang chờ xử lý
         cursor.execute('''
             SELECT task_id, url, task_type, priority, retry_count, max_retries, metadata, created_at
             FROM tasks
@@ -133,10 +133,10 @@ class PersistentQueue:
         self.conn.commit()
         
         if restored_count > 0:
-            logger.info(f"从数据库恢复了 {restored_count} 个未完成任务")
+            logger.info(f"Đã khôi phục {restored_count} nhiệm vụ chưa hoàn thành từ database")
     
     def _row_to_task(self, row: tuple) -> Optional[DownloadTask]:
-        """将数据库行转换为任务对象"""
+        """Chuyển đổi hàng database thành đối tượng nhiệm vụ"""
         try:
             task_id, url, task_type, priority, retry_count, max_retries, metadata_str, created_at = row
             
@@ -158,22 +158,22 @@ class PersistentQueue:
                 created_at=created_at
             )
         except Exception as e:
-            logger.error(f"转换任务失败: {e}")
+            logger.error(f"Chuyển đổi nhiệm vụ thất bại: {e}")
             return None
     
     async def add_task(self, task: DownloadTask) -> bool:
         """
-        添加任务到队列
+        Thêm nhiệm vụ vào hàng đợi
         
         Args:
-            task: 下载任务
+            task: Nhiệm vụ tải xuống
         
         Returns:
-            是否成功添加
+            Có thêm thành công không
         """
         async with self._lock:
             try:
-                # 保存到数据库
+                # Lưu vào database
                 cursor = self.conn.cursor()
                 cursor.execute('''
                     INSERT OR REPLACE INTO tasks (
@@ -195,30 +195,30 @@ class PersistentQueue:
                 ))
                 self.conn.commit()
                 
-                # 添加到内存队列
+                # Thêm vào hàng đợi bộ nhớ
                 await self.queue.put(task)
                 
-                logger.debug(f"任务 {task.task_id} 已添加到队列")
+                logger.debug(f"Nhiệm vụ {task.task_id} đã được thêm vào hàng đợi")
                 return True
                 
             except Exception as e:
-                logger.error(f"添加任务失败: {e}")
+                logger.error(f"Thêm nhiệm vụ thất bại: {e}")
                 return False
     
     async def get_task(self, timeout: float = 1.0) -> Optional[DownloadTask]:
         """
-        从队列获取任务
+        Lấy nhiệm vụ từ hàng đợi
         
         Args:
-            timeout: 超时时间
+            timeout: Thời gian chờ
         
         Returns:
-            下载任务
+            Nhiệm vụ tải xuống
         """
         try:
             task = await asyncio.wait_for(self.queue.get(), timeout=timeout)
             
-            # 更新数据库状态
+            # Cập nhật trạng thái database
             await self.update_task_status(task.task_id, TaskStatus.PROCESSING)
             
             return task
@@ -234,13 +234,13 @@ class PersistentQueue:
         result: Optional[Dict] = None
     ):
         """
-        更新任务状态
+        Cập nhật trạng thái nhiệm vụ
         
         Args:
-            task_id: 任务ID
-            status: 新状态
-            error_message: 错误信息
-            result: 执行结果
+            task_id: ID nhiệm vụ
+            status: Trạng thái mới
+            error_message: Thông báo lỗi
+            result: Kết quả thực thi
         """
         async with self._lock:
             cursor = self.conn.cursor()
@@ -259,7 +259,7 @@ class PersistentQueue:
             if status == TaskStatus.COMPLETED:
                 update_fields['completed_at'] = time.time()
             
-            # 构建UPDATE语句
+            # Xây dựng câu lệnh UPDATE
             set_clause = ', '.join([f'{k} = ?' for k in update_fields.keys()])
             values = list(update_fields.values()) + [task_id]
             
@@ -271,23 +271,23 @@ class PersistentQueue:
     
     async def requeue_task(self, task: DownloadTask):
         """
-        将任务重新加入队列
+        Đưa nhiệm vụ trở lại hàng đợi
         
         Args:
-            task: 下载任务
+            task: Nhiệm vụ tải xuống
         """
         task.retry_count += 1
         task.status = TaskStatus.RETRYING
         task.updated_at = time.time()
         
         await self.add_task(task)
-        logger.info(f"任务 {task.task_id} 重新加入队列 (重试 {task.retry_count}/{task.max_retries})")
+        logger.info(f"Nhiệm vụ {task.task_id} đã được đưa trở lại hàng đợi (thử lại {task.retry_count}/{task.max_retries})")
     
     def get_statistics(self) -> Dict[str, Any]:
-        """获取队列统计信息"""
+        """Lấy thông tin thống kê hàng đợi"""
         cursor = self.conn.cursor()
         
-        # 统计各状态任务数
+        # Thống kê số nhiệm vụ theo trạng thái
         cursor.execute('''
             SELECT status, COUNT(*) 
             FROM tasks 
@@ -298,12 +298,12 @@ class PersistentQueue:
         for status, count in cursor.fetchall():
             status_counts[status] = count
         
-        # 计算成功率
+        # Tính toán tỷ lệ thành công
         total = sum(status_counts.values())
         completed = status_counts.get(TaskStatus.COMPLETED.value, 0)
         success_rate = (completed / total * 100) if total > 0 else 0
         
-        # 计算平均耗时
+        # Tính toán thời gian trung bình
         cursor.execute('''
             SELECT AVG(completed_at - created_at)
             FROM tasks
@@ -327,7 +327,7 @@ class PersistentQueue:
         return stats
     
     async def save_progress(self):
-        """保存进度到数据库"""
+        """Lưu tiến độ vào database"""
         stats = self.get_statistics()
         
         cursor = self.conn.cursor()
@@ -348,16 +348,16 @@ class PersistentQueue:
         ))
         self.conn.commit()
         
-        logger.debug("进度已保存")
+        logger.debug("Đã lưu tiến độ")
     
     async def start_checkpoint(self):
-        """启动检查点保存任务"""
+        """Khởi động nhiệm vụ lưu checkpoint"""
         if not self._checkpoint_task:
             self._checkpoint_task = asyncio.create_task(self._checkpoint_loop())
-            logger.info("检查点保存任务已启动")
+            logger.info("Nhiệm vụ lưu checkpoint đã khởi động")
     
     async def stop_checkpoint(self):
-        """停止检查点保存任务"""
+        """Dừng nhiệm vụ lưu checkpoint"""
         if self._checkpoint_task:
             self._checkpoint_task.cancel()
             try:
@@ -365,10 +365,10 @@ class PersistentQueue:
             except asyncio.CancelledError:
                 pass
             self._checkpoint_task = None
-            logger.info("检查点保存任务已停止")
+            logger.info("Nhiệm vụ lưu checkpoint đã dừng")
     
     async def _checkpoint_loop(self):
-        """检查点保存循环"""
+        """Vòng lặp lưu checkpoint"""
         while True:
             try:
                 await asyncio.sleep(self.checkpoint_interval)
@@ -376,17 +376,17 @@ class PersistentQueue:
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                logger.error(f"保存检查点失败: {e}")
+                logger.error(f"Lưu checkpoint thất bại: {e}")
     
     def get_recent_progress(self, hours: int = 24) -> List[Dict]:
         """
-        获取最近的进度记录
+        Lấy các bản ghi tiến độ gần đây
         
         Args:
-            hours: 获取最近多少小时的记录
+            hours: Lấy bản ghi trong bao nhiêu giờ gần đây
         
         Returns:
-            进度记录列表
+            Danh sách bản ghi tiến độ
         """
         cursor = self.conn.cursor()
         since = time.time() - hours * 3600
@@ -413,10 +413,10 @@ class PersistentQueue:
     
     def cleanup_old_tasks(self, days: int = 7):
         """
-        清理旧任务记录
+        Dọn dẹp các bản ghi nhiệm vụ cũ
         
         Args:
-            days: 保留最近多少天的记录
+            days: Giữ lại bản ghi trong bao nhiêu ngày gần đây
         """
         cursor = self.conn.cursor()
         cutoff = time.time() - days * 86400
@@ -430,17 +430,17 @@ class PersistentQueue:
         self.conn.commit()
         
         if deleted > 0:
-            logger.info(f"清理了 {deleted} 条旧任务记录")
+            logger.info(f"Đã dọn dẹp {deleted} bản ghi nhiệm vụ cũ")
     
     def export_tasks(self, status: Optional[TaskStatus] = None) -> List[Dict]:
         """
-        导出任务列表
+        Xuất danh sách nhiệm vụ
         
         Args:
-            status: 筛选状态
+            status: Lọc theo trạng thái
         
         Returns:
-            任务列表
+            Danh sách nhiệm vụ
         """
         cursor = self.conn.cursor()
         
@@ -460,7 +460,7 @@ class PersistentQueue:
         
         for row in cursor.fetchall():
             task_dict = dict(zip(columns, row))
-            # 解析JSON字段
+            # Phân tích trường JSON
             if task_dict.get('metadata'):
                 try:
                     task_dict['metadata'] = json.loads(task_dict['metadata'])
@@ -476,19 +476,19 @@ class PersistentQueue:
         return tasks
     
     def close(self):
-        """关闭数据库连接"""
+        """Đóng kết nối database"""
         if self.conn:
             self.conn.close()
             self.conn = None
-            logger.info("数据库连接已关闭")
+            logger.info("Đã đóng kết nối database")
     
     async def __aenter__(self):
-        """异步上下文管理器入口"""
+        """Điểm vào quản lý context bất đồng bộ"""
         await self.start_checkpoint()
         return self
     
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        """异步上下文管理器出口"""
+        """Điểm ra quản lý context bất đồng bộ"""
         await self.stop_checkpoint()
         await self.save_progress()
         self.close()

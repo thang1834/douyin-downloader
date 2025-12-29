@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 """
-浏览器自动化下载策略
-使用Playwright实现浏览器自动化下载
+Chiến lược tải xuống tự động bằng trình duyệt
+Sử dụng Playwright để thực hiện tải xuống tự động bằng trình duyệt
 """
 
 import asyncio
@@ -18,28 +18,28 @@ from .base import IDownloadStrategy, DownloadTask, DownloadResult, TaskType
 
 logger = logging.getLogger(__name__)
 
-# 动态导入Playwright，避免未安装时报错
+# Import động Playwright, tránh lỗi khi chưa cài đặt
 try:
     from playwright.async_api import async_playwright, Browser, BrowserContext, Page
     PLAYWRIGHT_AVAILABLE = True
 except ImportError:
     PLAYWRIGHT_AVAILABLE = False
-    logger.warning("Playwright未安装，浏览器策略不可用。请运行: pip install playwright && playwright install chromium")
+    logger.warning("Playwright chưa được cài đặt, chiến lược trình duyệt không khả dụng. Vui lòng chạy: pip install playwright && playwright install chromium")
 
 
 class BrowserDownloadStrategy(IDownloadStrategy):
-    """浏览器自动化下载策略"""
+    """Chiến lược tải xuống tự động bằng trình duyệt"""
     
     def __init__(self, headless: bool = True, timeout: int = 30000):
         """
-        初始化浏览器策略
+        Khởi tạo chiến lược trình duyệt
         
         Args:
-            headless: 是否无头模式
-            timeout: 页面加载超时时间（毫秒）
+            headless: Có phải chế độ không đầu không
+            timeout: Thời gian chờ tải trang (milli giây)
         """
         if not PLAYWRIGHT_AVAILABLE:
-            raise ImportError("Playwright未安装，请运行: pip install playwright && playwright install chromium")
+            raise ImportError("Playwright chưa được cài đặt, vui lòng chạy: pip install playwright && playwright install chromium")
         
         self.headless = headless
         self.timeout = timeout
@@ -48,7 +48,7 @@ class BrowserDownloadStrategy(IDownloadStrategy):
         self.playwright = None
         self.initialized = False
         
-        # 浏览器配置
+        # Cấu hình trình duyệt
         self.browser_args = [
             '--disable-blink-features=AutomationControlled',
             '--disable-dev-shm-usage',
@@ -70,30 +70,30 @@ class BrowserDownloadStrategy(IDownloadStrategy):
         return "Browser Automation Strategy"
     
     def get_priority(self) -> int:
-        """浏览器策略优先级中等"""
+        """Ưu tiên chiến lược trình duyệt ở mức trung bình"""
         return 50
     
     async def can_handle(self, task: DownloadTask) -> bool:
-        """判断是否可以处理任务"""
-        # 浏览器策略可以处理视频和图集
+        """Đánh giá xem có thể xử lý nhiệm vụ không"""
+        # Chiến lược trình duyệt có thể xử lý video và bộ ảnh
         return task.task_type in [TaskType.VIDEO, TaskType.IMAGE]
     
     async def initialize(self):
-        """初始化浏览器"""
+        """Khởi tạo trình duyệt"""
         if self.initialized:
             return
         
         try:
-            logger.info("初始化浏览器...")
+            logger.info("Đang khởi tạo trình duyệt...")
             self.playwright = await async_playwright().start()
             
-            # 启动浏览器
+            # Khởi động trình duyệt
             self.browser = await self.playwright.chromium.launch(
                 headless=self.headless,
                 args=self.browser_args
             )
             
-            # 创建上下文
+            # Tạo context
             self.context = await self.browser.new_context(
                 viewport={'width': 1920, 'height': 1080},
                 user_agent=self.user_agent,
@@ -101,24 +101,24 @@ class BrowserDownloadStrategy(IDownloadStrategy):
                 timezone_id='Asia/Shanghai'
             )
             
-            # 添加反检测脚本
+            # Thêm script chống phát hiện
             await self.context.add_init_script("""
-                // 隐藏webdriver特征
+                // Ẩn đặc điểm webdriver
                 Object.defineProperty(navigator, 'webdriver', {
                     get: () => undefined
                 });
                 
-                // 修改navigator.plugins
+                // Sửa đổi navigator.plugins
                 Object.defineProperty(navigator, 'plugins', {
                     get: () => [1, 2, 3, 4, 5]
                 });
                 
-                // 修改navigator.languages
+                // Sửa đổi navigator.languages
                 Object.defineProperty(navigator, 'languages', {
                     get: () => ['zh-CN', 'zh', 'en']
                 });
                 
-                // 修改权限查询
+                // Sửa đổi truy vấn quyền
                 const originalQuery = window.navigator.permissions.query;
                 window.navigator.permissions.query = (parameters) => (
                     parameters.name === 'notifications' ?
@@ -128,37 +128,37 @@ class BrowserDownloadStrategy(IDownloadStrategy):
             """)
             
             self.initialized = True
-            logger.info("浏览器初始化完成")
+            logger.info("Khởi tạo trình duyệt hoàn tất")
             
         except Exception as e:
-            logger.error(f"浏览器初始化失败: {e}")
+            logger.error(f"Khởi tạo trình duyệt thất bại: {e}")
             await self.cleanup()
             raise
     
     async def download(self, task: DownloadTask) -> DownloadResult:
-        """执行下载任务"""
+        """Thực thi nhiệm vụ tải xuống"""
         start_time = time.time()
         
         try:
-            # 初始化浏览器
+            # Khởi tạo trình duyệt
             await self.initialize()
             
-            # 创建新页面
+            # Tạo trang mới
             page = await self.context.new_page()
             
             try:
-                # 设置cookies（如果有）
+                # Thiết lập cookies (nếu có)
                 if task.metadata.get('cookies'):
                     await self._set_cookies(page, task.metadata['cookies'])
                 
-                # 访问页面
-                logger.info(f"浏览器访问: {task.url}")
+                # Truy cập trang
+                logger.info(f"Trình duyệt truy cập: {task.url}")
                 await page.goto(task.url, wait_until='networkidle', timeout=self.timeout)
                 
-                # 等待页面加载
+                # Chờ trang tải
                 await asyncio.sleep(2)
                 
-                # 根据任务类型处理
+                # Xử lý theo loại nhiệm vụ
                 if task.task_type == TaskType.VIDEO:
                     result = await self._download_video(page, task)
                 else:
@@ -171,7 +171,7 @@ class BrowserDownloadStrategy(IDownloadStrategy):
                 await page.close()
                 
         except Exception as e:
-            logger.error(f"浏览器下载失败: {e}")
+            logger.error(f"Tải xuống bằng trình duyệt thất bại: {e}")
             return DownloadResult(
                 success=False,
                 task_id=task.task_id,
@@ -180,22 +180,22 @@ class BrowserDownloadStrategy(IDownloadStrategy):
             )
     
     async def _download_video(self, page: 'Page', task: DownloadTask) -> DownloadResult:
-        """下载视频"""
+        """Tải xuống video"""
         try:
-            # 等待视频元素加载
+            # Chờ phần tử video tải
             video_selector = 'video'
             await page.wait_for_selector(video_selector, timeout=10000)
             
-            # 获取视频信息
+            # Lấy thông tin video
             video_info = await page.evaluate("""
                 () => {
                     const video = document.querySelector('video');
                     if (!video) return null;
                     
-                    // 尝试多种方式获取视频URL
+                    // Thử nhiều cách để lấy URL video
                     let videoUrl = video.src || video.currentSrc;
                     
-                    // 如果没有直接的src，尝试从source标签获取
+                    // Nếu không có src trực tiếp, thử lấy từ thẻ source
                     if (!videoUrl) {
                         const source = video.querySelector('source');
                         if (source) {
@@ -203,14 +203,14 @@ class BrowserDownloadStrategy(IDownloadStrategy):
                         }
                     }
                     
-                    // 获取视频标题
+                    // Lấy tiêu đề video
                     let title = document.title;
                     const titleElement = document.querySelector('h1, .video-title, [class*="title"]');
                     if (titleElement) {
                         title = titleElement.innerText || title;
                     }
                     
-                    // 获取作者信息
+                    // Lấy thông tin tác giả
                     let author = '';
                     const authorElement = document.querySelector('[class*="author"], [class*="nickname"]');
                     if (authorElement) {
@@ -229,26 +229,26 @@ class BrowserDownloadStrategy(IDownloadStrategy):
             """)
             
             if not video_info or not video_info.get('url'):
-                # 尝试拦截网络请求获取视频URL
+                # Thử chặn request mạng để lấy URL video
                 video_url = await self._intercept_video_url(page)
                 if not video_url:
                     return DownloadResult(
                         success=False,
                         task_id=task.task_id,
-                        error_message="无法获取视频URL"
+                        error_message="Không thể lấy URL video"
                     )
                 video_info = {'url': video_url}
             
-            # 获取其他媒体资源
+            # Lấy các tài nguyên media khác
             media_urls = await self._extract_media_urls(page)
             
-            logger.info(f"获取到视频信息: {video_info}")
+            logger.info(f"Đã lấy thông tin video: {video_info}")
             
-            # 返回结果（实际下载由其他组件处理）
+            # Trả về kết quả (tải xuống thực tế do component khác xử lý)
             return DownloadResult(
                 success=True,
                 task_id=task.task_id,
-                file_paths=[],  # 这里只返回URL，实际下载由Download类处理
+                file_paths=[],  # Ở đây chỉ trả về URL, tải xuống thực tế do class Download xử lý
                 metadata={
                     'video_url': video_info['url'],
                     'title': video_info.get('title', ''),
@@ -259,7 +259,7 @@ class BrowserDownloadStrategy(IDownloadStrategy):
             )
             
         except Exception as e:
-            logger.error(f"视频下载失败: {e}")
+            logger.error(f"Tải xuống video thất bại: {e}")
             return DownloadResult(
                 success=False,
                 task_id=task.task_id,
@@ -267,17 +267,17 @@ class BrowserDownloadStrategy(IDownloadStrategy):
             )
     
     async def _download_images(self, page: 'Page', task: DownloadTask) -> DownloadResult:
-        """下载图集"""
+        """Tải xuống bộ ảnh"""
         try:
-            # 等待图片加载
+            # Chờ ảnh tải
             await page.wait_for_selector('img', timeout=10000)
             
-            # 获取所有图片URL
+            # Lấy tất cả URL ảnh
             image_urls = await page.evaluate("""
                 () => {
                     const images = [];
                     
-                    // 查找主要的图片容器
+                    // Tìm container ảnh chính
                     const selectors = [
                         '.swiper-slide img',
                         '[class*="image-list"] img',
@@ -298,7 +298,7 @@ class BrowserDownloadStrategy(IDownloadStrategy):
                         }
                     }
                     
-                    // 如果没找到，获取所有大图
+                    // Nếu không tìm thấy, lấy tất cả ảnh lớn
                     if (images.length === 0) {
                         document.querySelectorAll('img').forEach(img => {
                             if (img.naturalWidth > 200 && img.naturalHeight > 200) {
@@ -308,7 +308,7 @@ class BrowserDownloadStrategy(IDownloadStrategy):
                         });
                     }
                     
-                    return [...new Set(images)];  // 去重
+                    return [...new Set(images)];  // Loại bỏ trùng lặp
                 }
             """)
             
@@ -316,10 +316,10 @@ class BrowserDownloadStrategy(IDownloadStrategy):
                 return DownloadResult(
                     success=False,
                     task_id=task.task_id,
-                    error_message="未找到图片"
+                    error_message="Không tìm thấy ảnh"
                 )
             
-            logger.info(f"找到 {len(image_urls)} 张图片")
+            logger.info(f"Tìm thấy {len(image_urls)} ảnh")
             
             return DownloadResult(
                 success=True,
@@ -332,7 +332,7 @@ class BrowserDownloadStrategy(IDownloadStrategy):
             )
             
         except Exception as e:
-            logger.error(f"图集下载失败: {e}")
+            logger.error(f"Tải xuống bộ ảnh thất bại: {e}")
             return DownloadResult(
                 success=False,
                 task_id=task.task_id,
@@ -340,25 +340,25 @@ class BrowserDownloadStrategy(IDownloadStrategy):
             )
     
     async def _intercept_video_url(self, page: 'Page') -> Optional[str]:
-        """拦截网络请求获取视频URL"""
+        """Chặn request mạng để lấy URL video"""
         video_url = None
         
         def handle_response(response):
             nonlocal video_url
             url = response.url
-            # 检查是否是视频请求
+            # Kiểm tra xem có phải request video không
             if any(ext in url for ext in ['.mp4', '.m3u8', '.flv', 'video', 'stream']):
                 if response.status == 200:
                     video_url = url
-                    logger.info(f"拦截到视频URL: {url}")
+                    logger.info(f"Đã chặn được URL video: {url}")
         
-        # 监听响应
+        # Lắng nghe response
         page.on('response', handle_response)
         
-        # 等待一段时间收集请求
+        # Chờ một khoảng thời gian để thu thập request
         await asyncio.sleep(3)
         
-        # 尝试触发视频加载
+        # Thử kích hoạt tải video
         await page.evaluate("""
             () => {
                 const video = document.querySelector('video');
@@ -373,24 +373,24 @@ class BrowserDownloadStrategy(IDownloadStrategy):
         return video_url
     
     async def _extract_media_urls(self, page: 'Page') -> Dict[str, str]:
-        """提取页面中的媒体资源URL"""
+        """Trích xuất URL tài nguyên media trong trang"""
         media_urls = await page.evaluate("""
             () => {
                 const urls = {};
                 
-                // 获取音频URL
+                // Lấy URL audio
                 const audio = document.querySelector('audio');
                 if (audio) {
                     urls.audio = audio.src;
                 }
                 
-                // 获取封面图
+                // Lấy ảnh bìa
                 const meta_image = document.querySelector('meta[property="og:image"]');
                 if (meta_image) {
                     urls.cover = meta_image.content;
                 }
                 
-                // 获取头像
+                // Lấy avatar
                 const avatar = document.querySelector('[class*="avatar"] img');
                 if (avatar) {
                     urls.avatar = avatar.src;
@@ -403,10 +403,10 @@ class BrowserDownloadStrategy(IDownloadStrategy):
         return media_urls
     
     async def _set_cookies(self, page: 'Page', cookies: Any):
-        """设置cookies"""
+        """Thiết lập cookies"""
         try:
             if isinstance(cookies, str):
-                # 解析cookie字符串
+                # Phân tích chuỗi cookie
                 cookie_list = []
                 for item in cookies.split(';'):
                     if '=' in item:
@@ -427,13 +427,13 @@ class BrowserDownloadStrategy(IDownloadStrategy):
                 ]
                 await page.context.add_cookies(cookie_list)
                 
-            logger.info("Cookies设置成功")
+            logger.info("Thiết lập Cookies thành công")
             
         except Exception as e:
-            logger.warning(f"设置Cookies失败: {e}")
+            logger.warning(f"Thiết lập Cookies thất bại: {e}")
     
     async def cleanup(self):
-        """清理资源"""
+        """Dọn dẹp tài nguyên"""
         try:
             if self.context:
                 await self.context.close()
@@ -448,16 +448,16 @@ class BrowserDownloadStrategy(IDownloadStrategy):
                 self.playwright = None
             
             self.initialized = False
-            logger.info("浏览器资源已清理")
+            logger.info("Đã dọn dẹp tài nguyên trình duyệt")
             
         except Exception as e:
-            logger.error(f"清理浏览器资源失败: {e}")
+            logger.error(f"Dọn dẹp tài nguyên trình duyệt thất bại: {e}")
     
     async def __aenter__(self):
-        """异步上下文管理器入口"""
+        """Điểm vào quản lý context bất đồng bộ"""
         await self.initialize()
         return self
     
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        """异步上下文管理器出口"""
+        """Điểm ra quản lý context bất đồng bộ"""
         await self.cleanup()

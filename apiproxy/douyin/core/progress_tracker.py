@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 """
-实时进度跟踪系统
-支持WebSocket推送和进度监控
+Hệ thống theo dõi tiến độ thời gian thực
+Hỗ trợ đẩy WebSocket và giám sát tiến độ
 """
 
 import asyncio
@@ -17,18 +17,18 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
-# 动态导入WebSocket支持
+# Import động hỗ trợ WebSocket
 try:
     import websockets
     from websockets.server import WebSocketServerProtocol
     WEBSOCKET_AVAILABLE = True
 except ImportError:
     WEBSOCKET_AVAILABLE = False
-    logger.warning("websockets未安装，WebSocket功能不可用")
+    logger.warning("websockets chưa được cài đặt, chức năng WebSocket không khả dụng")
 
 
 class EventType(Enum):
-    """事件类型"""
+    """Loại sự kiện"""
     TASK_ADDED = "task_added"
     TASK_STARTED = "task_started"
     TASK_PROGRESS = "task_progress"
@@ -43,14 +43,14 @@ class EventType(Enum):
 
 @dataclass
 class ProgressEvent:
-    """进度事件"""
+    """Sự kiện tiến độ"""
     event_type: EventType
     task_id: Optional[str] = None
     data: Dict[str, Any] = field(default_factory=dict)
     timestamp: float = field(default_factory=time.time)
     
     def to_dict(self) -> Dict:
-        """转换为字典"""
+        """Chuyển đổi sang dictionary"""
         return {
             'event_type': self.event_type.value,
             'task_id': self.task_id,
@@ -59,13 +59,13 @@ class ProgressEvent:
         }
     
     def to_json(self) -> str:
-        """转换为JSON"""
+        """Chuyển đổi sang JSON"""
         return json.dumps(self.to_dict())
 
 
 @dataclass
 class TaskProgress:
-    """任务进度信息"""
+    """Thông tin tiến độ nhiệm vụ"""
     task_id: str
     url: str
     status: str
@@ -79,30 +79,30 @@ class TaskProgress:
     error_message: Optional[str] = None
     
     def get_duration(self) -> float:
-        """获取耗时"""
+        """Lấy thời gian đã dùng"""
         if self.end_time:
             return self.end_time - self.start_time
         return time.time() - self.start_time
     
     def update_progress(self, downloaded: int, total: int):
-        """更新进度"""
+        """Cập nhật tiến độ"""
         self.downloaded_bytes = downloaded
         self.total_bytes = total
         
         if total > 0:
             self.progress = (downloaded / total) * 100
         
-        # 计算速度
+        # Tính toán tốc độ
         duration = self.get_duration()
         if duration > 0:
             self.speed = downloaded / duration
         
-        # 计算剩余时间
+        # Tính toán thời gian còn lại
         if self.speed > 0 and total > downloaded:
             self.eta = (total - downloaded) / self.speed
     
     def to_dict(self) -> Dict:
-        """转换为字典"""
+        """Chuyển đổi sang dictionary"""
         return {
             'task_id': self.task_id,
             'url': self.url,
@@ -118,31 +118,31 @@ class TaskProgress:
 
 
 class ProgressTracker:
-    """进度跟踪器"""
+    """Bộ theo dõi tiến độ"""
     
     def __init__(self, enable_websocket: bool = True, ws_port: int = 8765):
         """
-        初始化进度跟踪器
+        Khởi tạo bộ theo dõi tiến độ
         
         Args:
-            enable_websocket: 是否启用WebSocket
-            ws_port: WebSocket端口
+            enable_websocket: Có bật WebSocket không
+            ws_port: Cổng WebSocket
         """
         self.enable_websocket = enable_websocket and WEBSOCKET_AVAILABLE
         self.ws_port = ws_port
         
-        # 任务进度
+        # Tiến độ nhiệm vụ
         self.tasks: Dict[str, TaskProgress] = {}
         
-        # 事件监听器
+        # Trình lắng nghe sự kiện
         self.listeners: List[Callable[[ProgressEvent], None]] = []
         
-        # WebSocket连接
+        # Kết nối WebSocket
         self.websocket_clients: List[WebSocketServerProtocol] = []
         self.websocket_server = None
         self.ws_task = None
         
-        # 统计信息
+        # Thông tin thống kê
         self.stats = {
             'total_tasks': 0,
             'active_tasks': 0,
@@ -153,23 +153,23 @@ class ProgressTracker:
             'success_rate': 0.0
         }
         
-        # 速度历史（用于计算平均速度）
+        # Lịch sử tốc độ (dùng để tính tốc độ trung bình)
         self.speed_history = []
         self.max_speed_history = 100
     
     def add_listener(self, listener: Callable[[ProgressEvent], None]):
-        """添加事件监听器"""
+        """Thêm trình lắng nghe sự kiện"""
         self.listeners.append(listener)
-        logger.debug(f"添加事件监听器: {listener}")
+        logger.debug(f"Thêm trình lắng nghe sự kiện: {listener}")
     
     def remove_listener(self, listener: Callable[[ProgressEvent], None]):
-        """移除事件监听器"""
+        """Xóa trình lắng nghe sự kiện"""
         if listener in self.listeners:
             self.listeners.remove(listener)
     
     async def emit_event(self, event: ProgressEvent):
-        """触发事件"""
-        # 通知监听器
+        """Kích hoạt sự kiện"""
+        # Thông báo cho các trình lắng nghe
         for listener in self.listeners:
             try:
                 if asyncio.iscoroutinefunction(listener):
@@ -177,14 +177,14 @@ class ProgressTracker:
                 else:
                     listener(event)
             except Exception as e:
-                logger.error(f"事件监听器执行失败: {e}")
+                logger.error(f"Thực thi trình lắng nghe sự kiện thất bại: {e}")
         
-        # 推送到WebSocket客户端
+        # Đẩy đến các client WebSocket
         if self.websocket_clients:
             await self._broadcast_websocket(event.to_json())
     
     async def add_task(self, task_id: str, url: str):
-        """添加任务"""
+        """Thêm nhiệm vụ"""
         self.tasks[task_id] = TaskProgress(
             task_id=task_id,
             url=url,
@@ -200,7 +200,7 @@ class ProgressTracker:
         ))
     
     async def start_task(self, task_id: str):
-        """开始任务"""
+        """Bắt đầu nhiệm vụ"""
         if task_id in self.tasks:
             self.tasks[task_id].status = "processing"
             self.tasks[task_id].start_time = time.time()
@@ -219,20 +219,20 @@ class ProgressTracker:
         total: int,
         extra_data: Optional[Dict] = None
     ):
-        """更新任务进度"""
+        """Cập nhật tiến độ nhiệm vụ"""
         if task_id not in self.tasks:
             return
         
         task = self.tasks[task_id]
         task.update_progress(downloaded, total)
         
-        # 更新速度历史
+        # Cập nhật lịch sử tốc độ
         if task.speed > 0:
             self.speed_history.append(task.speed)
             if len(self.speed_history) > self.max_speed_history:
                 self.speed_history.pop(0)
             
-            # 计算平均速度
+            # Tính toán tốc độ trung bình
             self.stats['average_speed'] = sum(self.speed_history) / len(self.speed_history)
         
         event_data = task.to_dict()
@@ -246,7 +246,7 @@ class ProgressTracker:
         ))
     
     async def complete_task(self, task_id: str, success: bool = True, error: Optional[str] = None):
-        """完成任务"""
+        """Hoàn thành nhiệm vụ"""
         if task_id not in self.tasks:
             return
         
@@ -266,7 +266,7 @@ class ProgressTracker:
         
         self.stats['active_tasks'] = max(0, self.stats['active_tasks'] - 1)
         
-        # 更新成功率
+        # Cập nhật tỷ lệ thành công
         total_finished = self.stats['completed_tasks'] + self.stats['failed_tasks']
         if total_finished > 0:
             self.stats['success_rate'] = (self.stats['completed_tasks'] / total_finished) * 100
@@ -278,7 +278,7 @@ class ProgressTracker:
         ))
     
     async def retry_task(self, task_id: str, retry_count: int):
-        """重试任务"""
+        """Thử lại nhiệm vụ"""
         if task_id in self.tasks:
             self.tasks[task_id].status = "retrying"
             
@@ -289,29 +289,29 @@ class ProgressTracker:
             ))
     
     async def update_stats(self):
-        """更新统计信息"""
+        """Cập nhật thông tin thống kê"""
         await self.emit_event(ProgressEvent(
             event_type=EventType.STATS_UPDATE,
             data=self.stats.copy()
         ))
     
     def get_task_progress(self, task_id: str) -> Optional[TaskProgress]:
-        """获取任务进度"""
+        """Lấy tiến độ nhiệm vụ"""
         return self.tasks.get(task_id)
     
     def get_active_tasks(self) -> List[TaskProgress]:
-        """获取活动任务"""
+        """Lấy các nhiệm vụ đang hoạt động"""
         return [
             task for task in self.tasks.values()
             if task.status in ["processing", "retrying"]
         ]
     
     def get_statistics(self) -> Dict[str, Any]:
-        """获取统计信息"""
+        """Lấy thông tin thống kê"""
         return self.stats.copy()
     
     def clear_completed_tasks(self):
-        """清理已完成的任务"""
+        """Dọn dẹp các nhiệm vụ đã hoàn thành"""
         completed_ids = [
             task_id for task_id, task in self.tasks.items()
             if task.status in ["completed", "failed"]
@@ -320,13 +320,13 @@ class ProgressTracker:
         for task_id in completed_ids:
             del self.tasks[task_id]
         
-        logger.info(f"清理了 {len(completed_ids)} 个已完成任务")
+        logger.info(f"Đã dọn dẹp {len(completed_ids)} nhiệm vụ đã hoàn thành")
     
-    # WebSocket相关功能
+    # Chức năng liên quan WebSocket
     async def start_websocket_server(self):
-        """启动WebSocket服务器"""
+        """Khởi động server WebSocket"""
         if not self.enable_websocket:
-            logger.info("WebSocket功能未启用")
+            logger.info("Chức năng WebSocket chưa được bật")
             return
         
         try:
@@ -336,28 +336,28 @@ class ProgressTracker:
                 self.ws_port
             )
             
-            logger.info(f"WebSocket服务器启动在 ws://localhost:{self.ws_port}")
+            logger.info(f"Server WebSocket khởi động tại ws://localhost:{self.ws_port}")
             
         except Exception as e:
-            logger.error(f"启动WebSocket服务器失败: {e}")
+            logger.error(f"Khởi động server WebSocket thất bại: {e}")
     
     async def stop_websocket_server(self):
-        """停止WebSocket服务器"""
+        """Dừng server WebSocket"""
         if self.websocket_server:
             self.websocket_server.close()
             await self.websocket_server.wait_closed()
             self.websocket_server = None
-            logger.info("WebSocket服务器已停止")
+            logger.info("Server WebSocket đã dừng")
     
     async def _handle_websocket(self, websocket: WebSocketServerProtocol, path: str):
-        """处理WebSocket连接"""
-        logger.info(f"新的WebSocket连接: {websocket.remote_address}")
+        """Xử lý kết nối WebSocket"""
+        logger.info(f"Kết nối WebSocket mới: {websocket.remote_address}")
         
-        # 添加客户端
+        # Thêm client
         self.websocket_clients.append(websocket)
         
         try:
-            # 发送当前状态
+            # Gửi trạng thái hiện tại
             await websocket.send(json.dumps({
                 'type': 'init',
                 'data': {
@@ -369,23 +369,23 @@ class ProgressTracker:
                 }
             }))
             
-            # 保持连接
+            # Duy trì kết nối
             async for message in websocket:
                 try:
                     data = json.loads(message)
                     await self._handle_ws_message(websocket, data)
                 except json.JSONDecodeError:
-                    logger.warning(f"无效的WebSocket消息: {message}")
+                    logger.warning(f"Tin nhắn WebSocket không hợp lệ: {message}")
                     
         except websockets.exceptions.ConnectionClosed:
-            logger.info(f"WebSocket连接关闭: {websocket.remote_address}")
+            logger.info(f"Kết nối WebSocket đóng: {websocket.remote_address}")
         finally:
-            # 移除客户端
+            # Xóa client
             if websocket in self.websocket_clients:
                 self.websocket_clients.remove(websocket)
     
     async def _handle_ws_message(self, websocket: WebSocketServerProtocol, data: Dict):
-        """处理WebSocket消息"""
+        """Xử lý tin nhắn WebSocket"""
         msg_type = data.get('type')
         
         if msg_type == 'ping':
@@ -405,11 +405,11 @@ class ProgressTracker:
             }))
     
     async def _broadcast_websocket(self, message: str):
-        """广播WebSocket消息"""
+        """Phát sóng tin nhắn WebSocket"""
         if not self.websocket_clients:
             return
         
-        # 并发发送给所有客户端
+        # Gửi đồng thời cho tất cả client
         disconnected = []
         
         for client in self.websocket_clients:
@@ -418,30 +418,30 @@ class ProgressTracker:
             except websockets.exceptions.ConnectionClosed:
                 disconnected.append(client)
         
-        # 清理断开的连接
+        # Dọn dẹp các kết nối đã ngắt
         for client in disconnected:
             self.websocket_clients.remove(client)
     
-    # 上下文管理器
+    # Context manager
     async def __aenter__(self):
-        """异步上下文管理器入口"""
+        """Điểm vào quản lý context bất đồng bộ"""
         await self.start_websocket_server()
         return self
     
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        """异步上下文管理器出口"""
+        """Điểm ra quản lý context bất đồng bộ"""
         await self.stop_websocket_server()
 
 
 def create_console_listener(use_rich: bool = True):
     """
-    创建控制台进度监听器
+    Tạo trình lắng nghe tiến độ console
     
     Args:
-        use_rich: 是否使用Rich库美化输出
+        use_rich: Có sử dụng thư viện Rich để làm đẹp đầu ra không
     
     Returns:
-        监听器函数
+        Hàm trình lắng nghe
     """
     if use_rich:
         try:
@@ -477,27 +477,27 @@ def create_console_listener(use_rich: bool = True):
                         )
                 
                 elif event.event_type == EventType.TASK_COMPLETED:
-                    console.print(f"[green]✓ 任务完成: {event.task_id}")
+                    console.print(f"[green]✓ Nhiệm vụ hoàn thành: {event.task_id}")
                 
                 elif event.event_type == EventType.TASK_FAILED:
-                    console.print(f"[red]✗ 任务失败: {event.task_id} - {event.data.get('error_message', 'Unknown error')}")
+                    console.print(f"[red]✗ Nhiệm vụ thất bại: {event.task_id} - {event.data.get('error_message', 'Lỗi không xác định')}")
             
             return rich_listener
             
         except ImportError:
             pass
     
-    # 默认简单监听器
+    # Trình lắng nghe đơn giản mặc định
     def simple_listener(event: ProgressEvent):
         timestamp = datetime.fromtimestamp(event.timestamp).strftime('%H:%M:%S')
         
         if event.event_type == EventType.TASK_PROGRESS:
             progress = event.data.get('progress', 0)
             speed = event.data.get('speed', 0)
-            print(f"[{timestamp}] 任务 {event.task_id}: {progress:.1f}% ({speed/1024/1024:.2f} MB/s)")
+            print(f"[{timestamp}] Nhiệm vụ {event.task_id}: {progress:.1f}% ({speed/1024/1024:.2f} MB/s)")
         elif event.event_type == EventType.TASK_COMPLETED:
-            print(f"[{timestamp}] ✓ 任务完成: {event.task_id}")
+            print(f"[{timestamp}] ✓ Nhiệm vụ hoàn thành: {event.task_id}")
         elif event.event_type == EventType.TASK_FAILED:
-            print(f"[{timestamp}] ✗ 任务失败: {event.task_id}")
+            print(f"[{timestamp}] ✗ Nhiệm vụ thất bại: {event.task_id}")
     
     return simple_listener
