@@ -1,33 +1,33 @@
 #######################################
-# 抖音下载器 配置示例（简洁版）
-# 仅保留最常用的选项，默认即可使用
+# Mẫu cấu hình Douyin Downloader (phiên bản gọn)
+# Chỉ giữ lại các tuỳ chọn phổ biến, mặc định là dùng được
 #######################################
 
-# 支持多个链接（视频或图文、也可放主页链接做批量）
+# Hỗ trợ nhiều liên kết (video hoặc ảnh, cũng có thể đặt link trang cá nhân để tải hàng loạt)
 link:
   - https://v.douyin.com/EXAMPLE1/
   - https://www.douyin.com/video/1234567890123456789
 
-# 保存目录
+# Thư mục lưu
 path: ./Downloaded/
 
-# 下载选项（可选，均默认为 true）
-music: true   # 下载音乐
-cover: true   # 下载封面
-json: true    # 保存元数据JSON
+# Tuỳ chọn tải (tuỳ chọn, mặc định đều là true)
+music: true   # Tải nhạc
+cover: true   # Tải ảnh bìa
+json: true    # Lưu metadata JSON
 
-# 时间过滤（可选，留空表示不过滤）。格式：YYYY-MM-DD
+# Lọc thời gian (tuỳ chọn, để trống để bỏ qua). Định dạng: YYYY-MM-DD
 start_time: ""
 end_time: ""
 
-# Cookie 配置（三选一，按优先级从上到下）
-# 1) 自动获取（需要已安装 Playwright：pip install playwright && playwright install）
+# Cấu hình Cookie (chọn một trong ba, ưu tiên từ trên xuống)
+# 1) Tự động lấy (cần cài Playwright: pip install playwright && playwright install)
 cookies: auto
 
-# 2) 直接粘贴整串 Cookie 字符串（示例，使用时请注释掉上面的 cookies: auto）
+# 2) Dán trực tiếp chuỗi Cookie (ví dụ, khi dùng hãy bỏ ghi chú dòng cookies: auto phía trên)
 # cookies: "msToken=YOUR_MS_TOKEN; ttwid=YOUR_TTWID; odin_tt=YOUR_ODIN_TT; ...;"
 
-# 3) 以键值对方式提供（示例，使用时请注释掉上面的 cookies）
+# 3) Cung cấp dưới dạng cặp khoá-giá trị (ví dụ, khi dùng hãy bỏ ghi chú dòng cookies phía trên)
 # cookies:
 #   msToken: YOUR_MS_TOKEN
 #   ttwid: YOUR_TTWID
@@ -35,7 +35,6 @@ cookies: auto
 #   passport_csrf_token: YOUR_PASSPORT_CSRF_TOKEN
 #   sid_guard: YOUR_SID_GUARD
 
-# 主页下载模式（仅当 link 是用户主页时生效，可选：post/like；默认 post）
+# Chế độ tải trang cá nhân (chỉ hiệu lực khi link là trang người dùng, tuỳ chọn: post/like; mặc định post)
 # mode:
 #   - post
-
